@@ -1,12 +1,15 @@
 import { unstable_noStore as noStore } from "next/cache";
 import { useState } from "react";
+import type { GraphDataItem } from "~/utils/types";
 
 // import { CreatePost } from "~/app/_components/create-post";
 // import { api } from "~/trpc/server";
 
 export default async function Home() {
   noStore();
-  const data = useState([]);
+  const data = useState<GraphDataItem[]>([
+    { date: new Date(), score: 4.7, reviewType: "payment", client: "me" },
+  ]);
   const settings = useState({});
   // const hello = await api.post.hello.query({ text: "from tRPC" });
 
