@@ -15,3 +15,9 @@ export type GraphDataItem = BaseDataItem & {
 export type FilterOptions = {
   reviewType: ("payment" | "general" | "history" | "scheduled")[];
 };
+
+export type GraphData = {
+  totalScore: number;
+  filteredScore?: number;
+  date: string;
+}[];
