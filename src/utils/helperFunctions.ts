@@ -7,3 +7,7 @@ export function updateStateObject<K, T extends keyof K>(
 ) {
   setStateObject((prev) => ({ ...prev, [key]: value }));
 }
+
+export function getMonth(date: Date) {
+  return date.toDateString().split(" ")[1];
+}
