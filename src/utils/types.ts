@@ -8,6 +8,9 @@ export type DataItem = {
 
 export type FilterOptions = {
   reviewType: ("payment" | "general" | "history" | "scheduled")[];
+  timeFrameYear: number;
+  timeFrameMonth: string;
+  timeFrameType: "monthly" | "yearly";
 };
 
 export type GraphData = {
