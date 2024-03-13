@@ -3,7 +3,7 @@ import { useState } from "react";
 // import { useForm } from "react-hook-form";
 import { AgChartsReact } from "ag-charts-react";
 import type { AgChartProps } from "ag-charts-react";
-import type { FilterOptions, GraphData, GraphDataItem } from "~/utils/types";
+import type { FilterOptions, GraphData, DataItem } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 
@@ -15,18 +15,24 @@ const baseCharOptions: Exclude<AgChartProps["options"], "data"> = {
   series: [
     {
       type: "line",
-      xKey: "date",
+      xKey: "dateLabel",
       yKey: "filteredScore",
       yName: "Filtered Score",
     },
-    { type: "line", xKey: "date", yKey: "totalScore", yName: "Total Score" },
+    {
+      type: "line",
+      xKey: "dateLabel",
+      yKey: "totalScore",
+      yName: "Total Score",
+    },
   ],
   theme: "ag-polychroma-dark",
 };
 
 export default function Chart() {
+  const [data, setData] = useState<DataItem[]>(baseData);
   const [filteredDataState, setFilteredDataState] =
-    useState<GraphDataItem[]>(baseData);
+    useState<DataItem[]>(baseData);
   const [reviewType, setReviewType] = useState<FilterOptions["reviewType"]>([]);
   // const {
   //   register,
@@ -53,7 +59,7 @@ export default function Chart() {
     ([key, value]) => ({
       totalScore: value,
       filteredScore: filteredDataObject[key],
-      date: key,
+      dateLabel: key,
     }),
   );
   const options: AgChartProps["options"] = {
@@ -65,7 +71,9 @@ export default function Chart() {
     <div className="flex w-full flex-col items-center justify-center">
       <AgChartsReact options={options} />
       <FilterSettings
-        setData={setFilteredDataState}
+        baseData={data}
+        setBaseData={setData}
+        setFilteredData={setFilteredDataState}
         reviewType={reviewType}
         setReviewType={setReviewType}
       />
@@ -74,11 +82,13 @@ export default function Chart() {
   );
 }
 
-function getDataObject(data: GraphDataItem[]) {
+function getDataObject(data: DataItem[]) {
   return data.reduce(
-    (object, { score, date }) => ({
+    (object, { score, dateLabel }) => ({
       ...object,
-      [date]: !!object[date] ? (score + (object[date] ?? 0)) / 2 : score,
+      [dateLabel]: !!object[dateLabel]
+        ? (score + (object[dateLabel] ?? 0)) / 2
+        : score,
     }),
     {} as Record<string, number>,
   );

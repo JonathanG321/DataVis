@@ -1,23 +1,35 @@
-import type { ChangeEvent, Dispatch, SetStateAction } from "react";
-import { baseData } from "~/utils/testData";
-import type { FilterOptions, GraphDataItem } from "~/utils/types";
+import {
+  useState,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
+import type { FilterOptions, DataItem } from "~/utils/types";
 
 type Props = {
-  setData: Dispatch<SetStateAction<GraphDataItem[]>>;
+  baseData: DataItem[];
+  setBaseData: Dispatch<SetStateAction<DataItem[]>>;
+  setFilteredData: Dispatch<SetStateAction<DataItem[]>>;
   reviewType: FilterOptions["reviewType"];
   setReviewType: Dispatch<SetStateAction<FilterOptions["reviewType"]>>;
 };
 
 export default function FilterSettings({
-  setData,
+  baseData,
+  setBaseData,
+  setFilteredData,
   reviewType,
   setReviewType,
 }: Props) {
+  const [timeFrameYear, setTimeFrameYear] = useState(new Date().getFullYear());
+  const [timeFrameMonth, setTimeFrameMonth] = useState(
+    new Date().toDateString().split(" ")[1],
+  );
   function onSubmit(settings: FilterOptions) {
-    setData(filterData(settings));
+    setFilteredData(filterData(settings));
   }
 
-  function filterData(settings: FilterOptions): GraphDataItem[] {
+  function filterData(settings: FilterOptions): DataItem[] {
     const newArr = baseData.filter((item) => {
       let shouldKeep = true;
       if (
@@ -82,6 +94,39 @@ export default function FilterSettings({
           onChange={handleReviewTypeChange}
         />
         Scheduled
+      </label>
+      <label>
+        <select
+          className="text-black"
+          value={timeFrameYear}
+          onChange={(e) => setTimeFrameYear(parseInt(e.target.value))}
+        >
+          {Array.from({ length: 20 }).map((_, i) => (
+            <option key={2020 + i} value={2020 + i}>
+              {2020 + i}
+            </option>
+          ))}
+        </select>
+        Year
+      </label>
+      <label>
+        <select
+          className="text-black"
+          value={timeFrameMonth}
+          onChange={(e) => setTimeFrameMonth(e.target.value)}
+        >
+          {Array.from({ length: 12 }).map((_, i) => {
+            const value = new Date(`${1 + i}/01/2024`)
+              .toDateString()
+              .split(" ")[1];
+            return (
+              <option key={value} value={value}>
+                {value}
+              </option>
+            );
+          })}
+        </select>
+        Month
       </label>
       <button type="submit">Submit</button>
     </form>

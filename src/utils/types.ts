@@ -1,15 +1,9 @@
-export type BaseDataItem = {
+export type DataItem = {
   score: number;
   client: string;
   reviewType: "payment" | "general" | "history" | "scheduled";
-};
-
-export type RawDataItem = BaseDataItem & {
   date: Date;
-};
-
-export type GraphDataItem = BaseDataItem & {
-  date: string;
+  dateLabel: string;
 };
 
 export type FilterOptions = {
@@ -19,5 +13,5 @@ export type FilterOptions = {
 export type GraphData = {
   totalScore: number;
   filteredScore?: number;
-  date: string;
+  dateLabel: string;
 }[];

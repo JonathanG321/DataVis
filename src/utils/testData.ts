@@ -1,6 +1,6 @@
-import type { FilterOptions, RawDataItem } from "./types";
+import type { DataItem, FilterOptions } from "./types";
 
-export const testData: RawDataItem[] = [
+export const baseData: DataItem[] = [
   ...generateData(),
   ...generateData(),
   ...generateData(),
@@ -10,18 +10,11 @@ export const testData: RawDataItem[] = [
   ...generateData(),
 ];
 
-export const baseData = testData.map((item) => {
-  const dateArr = item.date.toDateString().split(" ");
-  return {
-    ...item,
-    date: dateArr[1] + " " + dateArr[2],
-  };
-});
-
-export function generateData(): RawDataItem[] {
-  return Array.from({ length: 20 }).map((_, i) => {
+export function generateData(): DataItem[] {
+  return Array.from({ length: 25 }).map((_, i) => {
     const date = new Date();
     date.setDate(date.getDate() + i);
+    const dateArr = date.toDateString().split(" ");
     let reviewType: FilterOptions["reviewType"][0] = "scheduled";
     switch (Math.ceil(Math.random() * 4)) {
       case 1:
@@ -38,6 +31,7 @@ export function generateData(): RawDataItem[] {
         break;
     }
     return {
+      dateLabel: dateArr[1] + " " + dateArr[2],
       date,
       score: Math.round(Math.random() * 50) / 10,
       reviewType,
