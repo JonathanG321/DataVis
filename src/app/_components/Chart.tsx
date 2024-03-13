@@ -9,11 +9,42 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   title: { text: "Test" },
   width: 1000,
   height: 600,
-  theme: "ag-polychroma-dark",
+  theme: {
+    baseTheme: "ag-polychroma-dark",
+    overrides: {
+      line: {
+        series: {
+          highlightStyle: {
+            series: {
+              dimOpacity: 0.2,
+            },
+          },
+        },
+      },
+    },
+  },
+  legend: {
+    enabled: true,
+  },
+  axes: [
+    {
+      type: "category",
+      position: "bottom",
+      keys: ["dateLabel"],
+    },
+    {
+      type: "number",
+      position: "left",
+      keys: ["totalScore", "filteredScore"],
+      max: 5,
+      min: 0,
+    },
+  ],
   subtitle: {
     text: `Data from ${new Date().toDateString().split(" ")[1]} ${new Date().getFullYear()}`,
   },
 };
+
 const simpleSeries: AgChartProps["options"]["series"] = [
   {
     type: "line",
@@ -37,10 +68,14 @@ const filteredSeries: AgChartProps["options"]["series"] = [
   },
 ];
 export default function Chart() {
+  const date = new Date();
+  const weekDate = new Date();
+  weekDate.setDate(weekDate.getDate() - weekDate.getDay());
   const [filterOptions, setFilterOptions] = useState<FilterOptions>({
     reviewType: [],
-    timeFrameYear: new Date().getFullYear(),
-    timeFrameMonth: new Date().toDateString().split(" ")[1] ?? "Jan",
+    timeFrameYear: date.getFullYear(),
+    timeFrameMonth: date.getMonth(),
+    timeFrameWeek: weekDate,
     timeFrameType: "monthly",
   });
   const [chartOptions, setChartOptions] =
@@ -48,7 +83,7 @@ export default function Chart() {
   const dateFilteredData = baseData.filter(
     (item) =>
       item.date.getFullYear() === filterOptions.timeFrameYear &&
-      item.date.toDateString().split(" ")[1] === filterOptions.timeFrameMonth,
+      item.date.getMonth() === filterOptions.timeFrameMonth,
   );
   const [totalDataState, setTotalDataState] =
     useState<DataItem[]>(dateFilteredData);
@@ -77,7 +112,12 @@ export default function Chart() {
   return (
     <div className="flex w-full flex-col items-center justify-center">
       <div className="flex">
-        <AgChartsReact options={options} />
+        <div
+          className="bg-gray-800"
+          style={{ width: options.width, height: options.height }}
+        >
+          <AgChartsReact options={options} />
+        </div>
         <FilterSettings
           setChartOptions={setChartOptions}
           setTotalData={setTotalDataState}
