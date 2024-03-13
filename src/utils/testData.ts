@@ -11,7 +11,7 @@ export const baseData: DataItem[] = [
 ];
 
 export function generateData(): DataItem[] {
-  return Array.from({ length: 25 }).map((_, i) => {
+  return Array.from({ length: 365 }).map((_, i) => {
     const date = new Date();
     date.setDate(date.getDate() + i);
     const dateArr = date.toDateString().split(" ");
