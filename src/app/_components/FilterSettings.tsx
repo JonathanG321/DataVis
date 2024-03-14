@@ -3,12 +3,15 @@ import {
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
+  type FormEvent,
+  type MouseEvent,
 } from "react";
 import type { AgChartProps } from "ag-charts-react";
 import { getMonth, getWeek, updateStateObject } from "~/utils/helperFunctions";
 import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
-import { reviewTypes, timeRange } from "~/utils/constants";
+import { defaultFilters, reviewTypes, timeRange } from "~/utils/constants";
+import Accordion from "./Accordion";
 
 type Props = {
   setTotalData: Dispatch<SetStateAction<DataItem[]>>;
@@ -29,32 +32,40 @@ export default function FilterSettings({
     filterOptions.timeFrameWeek,
   );
 
-  function onSubmit(settings: FilterOptions) {
-    let newFilterOptions = { ...settings };
-    let subtitle = newFilterOptions.timeFrameYear.toString();
-    if (newFilterOptions.timeFrameType === "monthly") {
-      subtitle = `${getMonth(new Date(`${newFilterOptions.timeFrameMonth + 1}/01/2024`)) + " " + newFilterOptions.timeFrameYear}`;
-    } else if (newFilterOptions.timeFrameType === "weekly") {
-      newFilterOptions = {
-        ...settings,
+  function onSubmit(e: FormEvent<HTMLFormElement>, filters: FilterOptions) {
+    e.preventDefault();
+    handleFilter(filters);
+  }
+
+  function handleFilter(filters: FilterOptions) {
+    let newFilters = { ...filters };
+    let subtitle = newFilters.timeFrameYear.toString();
+    if (newFilters.timeFrameType === "monthly") {
+      subtitle = `${getMonth(new Date(`${newFilters.timeFrameMonth + 1}/01/2024`)) + " " + newFilters.timeFrameYear}`;
+    } else if (newFilters.timeFrameType === "weekly") {
+      newFilters = {
+        ...filters,
         ...updateStateObject("timeFrameWeek", weeklyRange, setFilterOptions),
       };
-      subtitle = getWeek(newFilterOptions.timeFrameWeek);
+      subtitle = getWeek(newFilters.timeFrameWeek);
     }
     updateStateObject(
       "subtitle",
-      {
-        text: `Data from ${subtitle}`,
-      },
+      { text: `Data from ${subtitle}` },
       setChartOptions,
     );
-    const newFilteredData = dateFilter(
-      filterData(newFilterOptions),
-      newFilterOptions,
-    );
-    const newTotalData = dateFilter(baseData, newFilterOptions);
+    const newFilteredData = dateFilter(filterData(newFilters), newFilters);
+    const newTotalData = dateFilter(baseData, newFilters);
     setFilteredData(newFilteredData);
     setTotalData(newTotalData);
+  }
+
+  function resetFilters(
+    e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
+  ) {
+    e.preventDefault();
+    setFilterOptions(defaultFilters);
+    handleFilter(defaultFilters);
   }
 
   function handleReviewTypeChange(event: ChangeEvent<HTMLInputElement>) {
@@ -68,14 +79,28 @@ export default function FilterSettings({
 
   return (
     <form
-      className="h-full rounded-lg bg-gray-800 p-4"
-      onSubmit={(e) => {
-        e.preventDefault();
-        onSubmit(filterOptions);
-      }}
+      className="h-full rounded-lg border-2 border-gray-700 bg-gray-800"
+      onSubmit={(e) => onSubmit(e, filterOptions)}
     >
-      <h3 className="text-2xl font-bold">Filters</h3>
-      <div className="mb-2 flex flex-col">
+      <div className="flex justify-between p-4">
+        <h3 className="text-2xl font-bold">Filters</h3>
+        <div className="flex">
+          <button
+            className="mr-2 rounded border border-gray-600 bg-gray-700 px-2 text-sm font-bold text-gray-500"
+            type="button"
+            onClick={resetFilters}
+          >
+            Reset
+          </button>
+          <button
+            className="rounded border border-yellow-600 bg-yellow-700 px-2 text-sm font-bold text-yellow-600"
+            type="submit"
+          >
+            Apply
+          </button>
+        </div>
+      </div>
+      <Accordion title="Test">
         {reviewTypes.map((type) => (
           <label className="py-1" key={type}>
             <input
@@ -89,8 +114,8 @@ export default function FilterSettings({
             </span>
           </label>
         ))}
-      </div>
-      <div className="flex flex-col">
+      </Accordion>
+      <div className="flex flex-col p-4">
         <h3 className="text-2xl font-bold">Time Range</h3>
         <label className="flex justify-between py-2">
           <span className="mr-2">Range</span>
@@ -189,12 +214,6 @@ export default function FilterSettings({
             </button>
           </label>
         )}
-        <button
-          className="rounded border border-yellow-600 bg-yellow-700 text-yellow-600"
-          type="submit"
-        >
-          Submit
-        </button>
       </div>
     </form>
   );
