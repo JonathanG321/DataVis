@@ -7,8 +7,7 @@ import FilterSettings from "./FilterSettings";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   title: { text: "Test" },
-  width: 1000,
-  height: 600,
+  background: { fill: "rgb(31 41 55)" },
   theme: {
     baseTheme: "ag-polychroma-dark",
     overrides: {
@@ -111,20 +110,21 @@ export default function Chart() {
 
   return (
     <div className="flex w-full flex-col items-center justify-center">
-      <div className="flex">
-        <div
-          className="bg-gray-800"
-          style={{ width: options.width, height: options.height }}
-        >
-          <AgChartsReact options={options} />
+      <div className="flex w-full">
+        <div className="w-9/12 p-2">
+          <div className="h-120 overflow-hidden rounded-lg bg-gray-800">
+            <AgChartsReact options={options} />
+          </div>
         </div>
-        <FilterSettings
-          setChartOptions={setChartOptions}
-          setTotalData={setTotalDataState}
-          setFilteredData={setFilteredDataState}
-          filterOptions={filterOptions}
-          setFilterOptions={setFilterOptions}
-        />
+        <div className="w-3/12 p-2">
+          <FilterSettings
+            setChartOptions={setChartOptions}
+            setTotalData={setTotalDataState}
+            setFilteredData={setFilteredDataState}
+            filterOptions={filterOptions}
+            setFilterOptions={setFilterOptions}
+          />
+        </div>
       </div>
       {/* <CrudShowcase /> */}
     </div>
