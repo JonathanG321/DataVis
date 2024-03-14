@@ -28,15 +28,18 @@ export default function FilterSettings({
   const [weeklyRange, setWeeklyRange] = useState<Date>(
     filterOptions.timeFrameWeek,
   );
+
   function onSubmit(settings: FilterOptions) {
-    setFilteredData(dateFilter(filterData(settings)));
-    setTotalData(dateFilter(baseData));
-    let subtitle = settings.timeFrameYear.toString();
-    if (settings.timeFrameType === "monthly") {
-      subtitle = `${getMonth(new Date(`${settings.timeFrameMonth + 1}/01/2024`)) + " " + settings.timeFrameYear}`;
-    } else if (settings.timeFrameType === "weekly") {
-      subtitle = getWeek(settings.timeFrameWeek);
-      updateStateObject("timeFrameWeek", weeklyRange, setFilterOptions);
+    let newFilterOptions = { ...settings };
+    let subtitle = newFilterOptions.timeFrameYear.toString();
+    if (newFilterOptions.timeFrameType === "monthly") {
+      subtitle = `${getMonth(new Date(`${newFilterOptions.timeFrameMonth + 1}/01/2024`)) + " " + newFilterOptions.timeFrameYear}`;
+    } else if (newFilterOptions.timeFrameType === "weekly") {
+      newFilterOptions = {
+        ...settings,
+        ...updateStateObject("timeFrameWeek", weeklyRange, setFilterOptions),
+      };
+      subtitle = getWeek(newFilterOptions.timeFrameWeek);
     }
     updateStateObject(
       "subtitle",
@@ -45,46 +48,13 @@ export default function FilterSettings({
       },
       setChartOptions,
     );
-  }
-
-  function filterData(settings: FilterOptions): DataItem[] {
-    const newArr = baseData.filter((item) => {
-      let shouldKeep = true;
-      if (
-        !!settings.reviewType.length &&
-        !settings.reviewType.includes(item.reviewType)
-      ) {
-        shouldKeep = false;
-      }
-      return shouldKeep;
-    });
-    return newArr;
-  }
-
-  function dateFilter(data: DataItem[]) {
-    const weekDate = new Date(filterOptions.timeFrameWeek.toDateString());
-    const day = weekDate.getDay();
-    weekDate.setDate(weekDate.getDate() - day);
-    const displayData = data.filter((item) => {
-      const itemIsYear =
-        item.date.getFullYear() === filterOptions.timeFrameYear;
-      const itemIsMonth = item.date.getMonth() === filterOptions.timeFrameMonth;
-
-      if (filterOptions.timeFrameType === "yearly") {
-        return itemIsYear;
-      } else if (filterOptions.timeFrameType === "monthly") {
-        return itemIsYear && itemIsMonth;
-      } else if (filterOptions.timeFrameType === "weekly") {
-        const startDate = new Date(weekDate);
-        startDate.setDate(startDate.getDate() - startDate.getDay());
-
-        const endDate = new Date(startDate);
-        endDate.setDate(endDate.getDate() + 7);
-
-        return item.date >= startDate && item.date < endDate;
-      }
-    });
-    return displayData;
+    const newFilteredData = dateFilter(
+      filterData(newFilterOptions),
+      newFilterOptions,
+    );
+    const newTotalData = dateFilter(baseData, newFilterOptions);
+    setFilteredData(newFilteredData);
+    setTotalData(newTotalData);
   }
 
   function handleReviewTypeChange(event: ChangeEvent<HTMLInputElement>) {
@@ -228,4 +198,45 @@ export default function FilterSettings({
       </div>
     </form>
   );
+}
+
+function dateFilter(data: DataItem[], settings: FilterOptions) {
+  const { timeFrameWeek, timeFrameMonth, timeFrameYear, timeFrameType } =
+    settings;
+  const weekDate = new Date(timeFrameWeek.toDateString());
+  const day = weekDate.getDay();
+  weekDate.setDate(weekDate.getDate() - day);
+  const displayData = data.filter((item) => {
+    const itemIsYear = item.date.getFullYear() === timeFrameYear;
+    const itemIsMonth = item.date.getMonth() === timeFrameMonth;
+
+    if (timeFrameType === "yearly") {
+      return itemIsYear;
+    } else if (timeFrameType === "monthly") {
+      return itemIsYear && itemIsMonth;
+    } else if (timeFrameType === "weekly") {
+      const startDate = new Date(weekDate);
+      startDate.setDate(startDate.getDate() - startDate.getDay());
+
+      const endDate = new Date(startDate);
+      endDate.setDate(endDate.getDate() + 7);
+
+      return item.date >= startDate && item.date < endDate;
+    }
+  });
+  return displayData;
+}
+
+function filterData(settings: FilterOptions): DataItem[] {
+  const newArr = baseData.filter((item) => {
+    let shouldKeep = true;
+    if (
+      !!settings.reviewType.length &&
+      !settings.reviewType.includes(item.reviewType)
+    ) {
+      shouldKeep = false;
+    }
+    return shouldKeep;
+  });
+  return newArr;
 }
