@@ -1,9 +1,10 @@
 "use client";
 import { useState } from "react";
 import { type AgChartProps, AgChartsReact } from "ag-charts-react";
-import type { FilterOptions, GraphData, DataItem } from "~/utils/types";
+import type { GraphData, DataItem } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
+import { defaultFilters } from "~/utils/constants";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   title: { text: "Test" },
@@ -33,7 +34,7 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
     },
     {
       type: "number",
-      position: "left",
+      position: "right",
       keys: ["totalScore", "filteredScore"],
       max: 5,
       min: 0,
@@ -67,16 +68,7 @@ const filteredSeries: AgChartProps["options"]["series"] = [
   },
 ];
 export default function Chart() {
-  const date = new Date();
-  const weekDate = new Date();
-  weekDate.setDate(weekDate.getDate() - weekDate.getDay());
-  const [filterOptions, setFilterOptions] = useState<FilterOptions>({
-    reviewType: [],
-    timeFrameYear: date.getFullYear(),
-    timeFrameMonth: date.getMonth(),
-    timeFrameWeek: weekDate,
-    timeFrameType: "monthly",
-  });
+  const [filterOptions, setFilterOptions] = useState(defaultFilters);
   const [chartOptions, setChartOptions] =
     useState<AgChartProps["options"]>(baseChartOptions);
   const dateFilteredData = baseData.filter(
@@ -112,7 +104,7 @@ export default function Chart() {
     <div className="flex w-full flex-col items-center justify-center">
       <div className="flex w-full">
         <div className="w-9/12 p-2">
-          <div className="h-120 overflow-hidden rounded-lg bg-gray-800">
+          <div className="h-120 overflow-hidden rounded-lg border-2 border-gray-700 bg-gray-800">
             <AgChartsReact options={options} />
           </div>
         </div>
