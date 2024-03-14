@@ -4,8 +4,14 @@ export function updateStateObject<K, T extends keyof K>(
   key: T,
   value: K[T],
   setStateObject: Dispatch<SetStateAction<K>>,
-) {
-  setStateObject((prev) => ({ ...prev, [key]: value }));
+): K {
+  let newData = {} as K;
+  setStateObject((prev) => {
+    const newObject = { ...prev, [key]: value };
+    newData = { ...newObject };
+    return newObject;
+  });
+  return newData;
 }
 
 export function getMonth(date: Date) {
