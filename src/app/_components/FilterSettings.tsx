@@ -1,6 +1,11 @@
-import type { ChangeEvent, Dispatch, SetStateAction } from "react";
+import {
+  useState,
+  type ChangeEvent,
+  type Dispatch,
+  type SetStateAction,
+} from "react";
 import type { AgChartProps } from "ag-charts-react";
-import { getMonth, updateStateObject } from "~/utils/helperFunctions";
+import { getMonth, getWeek, updateStateObject } from "~/utils/helperFunctions";
 import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
 import { reviewTypes, timeRange } from "~/utils/constants";
@@ -20,6 +25,9 @@ export default function FilterSettings({
   setFilterOptions,
   setChartOptions,
 }: Props) {
+  const [weeklyRange, setWeeklyRange] = useState<Date>(
+    filterOptions.timeFrameWeek,
+  );
   function onSubmit(settings: FilterOptions) {
     setFilteredData(dateFilter(filterData(settings)));
     setTotalData(dateFilter(baseData));
@@ -27,11 +35,8 @@ export default function FilterSettings({
     if (settings.timeFrameType === "monthly") {
       subtitle = `${getMonth(new Date(`${settings.timeFrameMonth + 1}/01/2024`)) + " " + settings.timeFrameYear}`;
     } else if (settings.timeFrameType === "weekly") {
-      const newDate = new Date(settings.timeFrameWeek.toDateString());
-      const startDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
-      newDate.setDate(newDate.getDate() + 7);
-      const endDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
-      subtitle = `${startDate} - ${endDate} ${settings.timeFrameYear}`;
+      subtitle = getWeek(settings.timeFrameWeek);
+      updateStateObject("timeFrameWeek", weeklyRange, setFilterOptions);
     }
     updateStateObject(
       "subtitle",
@@ -93,7 +98,7 @@ export default function FilterSettings({
 
   return (
     <form
-      className="ml-2"
+      className="w-full pl-2"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(filterOptions);
@@ -186,22 +191,26 @@ export default function FilterSettings({
           </label>
         )}
         {filterOptions.timeFrameType === "weekly" && (
-          <label className="p-2">
-            <span className="mr-2">Move Week</span>
+          <label>
             <button
+              className="mr-2 rounded border border-yellow-600 bg-yellow-700 px-2 text-yellow-600"
+              type="button"
               onClick={() => {
-                const newWeek = new Date(filterOptions.timeFrameWeek);
+                const newWeek = new Date(weeklyRange);
                 newWeek.setDate(newWeek.getDate() - 7);
-                updateStateObject("timeFrameWeek", newWeek, setFilterOptions);
+                setWeeklyRange(newWeek);
               }}
             >
               {"<"}
             </button>
+            <span>{getWeek(weeklyRange)}</span>
             <button
+              className="ml-2 rounded border border-yellow-600 bg-yellow-700 px-2 text-yellow-600"
+              type="button"
               onClick={() => {
-                const newWeek = new Date(filterOptions.timeFrameWeek);
+                const newWeek = new Date(weeklyRange);
                 newWeek.setDate(newWeek.getDate() + 7);
-                updateStateObject("timeFrameWeek", newWeek, setFilterOptions);
+                setWeeklyRange(newWeek);
               }}
             >
               {">"}
