@@ -98,15 +98,16 @@ export default function FilterSettings({
 
   return (
     <form
-      className="w-full pl-2"
+      className="h-full rounded-lg bg-gray-800 p-4"
       onSubmit={(e) => {
         e.preventDefault();
         onSubmit(filterOptions);
       }}
     >
-      <div className="flex flex-col">
+      <h3 className="text-2xl font-bold">Filters</h3>
+      <div className="mb-2 flex flex-col">
         {reviewTypes.map((type) => (
-          <label className="py-1 pl-3" key={type}>
+          <label className="py-1" key={type}>
             <input
               type="checkbox"
               checked={filterOptions.reviewType.includes(type)}
@@ -120,7 +121,8 @@ export default function FilterSettings({
         ))}
       </div>
       <div className="flex flex-col">
-        <label className="p-2">
+        <h3 className="text-2xl font-bold">Time Range</h3>
+        <label className="flex justify-between py-2">
           <span className="mr-2">Range</span>
           <select
             className="text-black"
@@ -142,7 +144,7 @@ export default function FilterSettings({
         </label>
         {(filterOptions.timeFrameType === "yearly" ||
           filterOptions.timeFrameType === "monthly") && (
-          <label className="p-2">
+          <label className="flex justify-between py-2">
             <span className="mr-2">Year</span>
             <select
               className="text-black"
@@ -164,7 +166,7 @@ export default function FilterSettings({
           </label>
         )}
         {filterOptions.timeFrameType === "monthly" && (
-          <label className="p-2">
+          <label className="flex justify-between py-2">
             <span className="mr-2">Month</span>
             <select
               className="text-black"
@@ -191,7 +193,7 @@ export default function FilterSettings({
           </label>
         )}
         {filterOptions.timeFrameType === "weekly" && (
-          <label>
+          <label className="flex justify-between py-2">
             <button
               className="mr-2 rounded border border-yellow-600 bg-yellow-700 px-2 text-yellow-600"
               type="button"
