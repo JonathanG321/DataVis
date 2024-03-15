@@ -1,16 +1,16 @@
 import {
-  useState,
   type ChangeEvent,
   type Dispatch,
   type SetStateAction,
   type FormEvent,
   type MouseEvent,
+  useEffect,
 } from "react";
 import type { AgChartProps } from "ag-charts-react";
 import { getMonth, getWeek, updateStateObject } from "~/utils/helperFunctions";
 import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
-import { defaultFilters, reviewTypes, timeRange } from "~/utils/constants";
+import { reviewTypes } from "~/utils/constants";
 import Accordion from "./Accordion";
 
 type Props = {
@@ -28,10 +28,6 @@ export default function FilterSettings({
   setFilterOptions,
   setChartOptions,
 }: Props) {
-  const [weeklyRange, setWeeklyRange] = useState<Date>(
-    filterOptions.timeFrameWeek,
-  );
-
   function onSubmit(e: FormEvent<HTMLFormElement>, filters: FilterOptions) {
     e.preventDefault();
     handleFilter(filters);
@@ -45,7 +41,11 @@ export default function FilterSettings({
     } else if (newFilters.timeFrameType === "weekly") {
       newFilters = {
         ...filters,
-        ...updateStateObject("timeFrameWeek", weeklyRange, setFilterOptions),
+        ...updateStateObject(
+          "timeFrameWeek",
+          filterOptions.timeFrameWeek,
+          setFilterOptions,
+        ),
       };
       subtitle = getWeek(newFilters.timeFrameWeek);
     }
@@ -64,8 +64,8 @@ export default function FilterSettings({
     e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
   ) {
     e.preventDefault();
-    setFilterOptions(defaultFilters);
-    handleFilter(defaultFilters);
+    setFilterOptions({ ...filterOptions, reviewType: [] });
+    handleFilter({ ...filterOptions, reviewType: [] });
   }
 
   function handleReviewTypeChange(event: ChangeEvent<HTMLInputElement>) {
@@ -76,6 +76,16 @@ export default function FilterSettings({
 
     updateStateObject("reviewType", newReviewType, setFilterOptions);
   }
+
+  useEffect(() => {
+    handleFilter(filterOptions);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [
+    filterOptions.timeFrameType,
+    filterOptions.timeFrameMonth,
+    filterOptions.timeFrameWeek,
+    filterOptions.timeFrameYear,
+  ]);
 
   return (
     <form
@@ -100,7 +110,7 @@ export default function FilterSettings({
           </button>
         </div>
       </div>
-      <Accordion title="Test">
+      <Accordion title="Review Type">
         {reviewTypes.map((type) => (
           <label className="py-1" key={type}>
             <input
@@ -115,106 +125,6 @@ export default function FilterSettings({
           </label>
         ))}
       </Accordion>
-      <div className="flex flex-col p-4">
-        <h3 className="text-2xl font-bold">Time Range</h3>
-        <label className="flex justify-between py-2">
-          <span className="mr-2">Range</span>
-          <select
-            className="text-black"
-            value={filterOptions.timeFrameType}
-            onChange={(e) =>
-              updateStateObject(
-                "timeFrameType",
-                e.target.value as FilterOptions["timeFrameType"],
-                setFilterOptions,
-              )
-            }
-          >
-            {timeRange.map((time) => (
-              <option className="capitalize" key={time} value={time}>
-                {time.replace(time[0] ?? "", (time[0] ?? "").toUpperCase())}
-              </option>
-            ))}
-          </select>
-        </label>
-        {(filterOptions.timeFrameType === "yearly" ||
-          filterOptions.timeFrameType === "monthly") && (
-          <label className="flex justify-between py-2">
-            <span className="mr-2">Year</span>
-            <select
-              className="text-black"
-              value={filterOptions.timeFrameYear}
-              onChange={(e) =>
-                updateStateObject(
-                  "timeFrameYear",
-                  parseInt(e.target.value),
-                  setFilterOptions,
-                )
-              }
-            >
-              {Array.from({ length: 20 }).map((_, i) => (
-                <option key={2020 + i} value={2020 + i}>
-                  {2020 + i}
-                </option>
-              ))}
-            </select>
-          </label>
-        )}
-        {filterOptions.timeFrameType === "monthly" && (
-          <label className="flex justify-between py-2">
-            <span className="mr-2">Month</span>
-            <select
-              className="text-black"
-              value={filterOptions.timeFrameMonth}
-              onChange={(e) =>
-                updateStateObject(
-                  "timeFrameMonth",
-                  parseInt(e.target.value),
-                  setFilterOptions,
-                )
-              }
-            >
-              {Array.from({ length: 12 }).map((_, i) => {
-                const date = new Date(`${1 + i}/01/2024`)
-                  .toDateString()
-                  .split(" ")[1];
-                return (
-                  <option key={date} value={i}>
-                    {date}
-                  </option>
-                );
-              })}
-            </select>
-          </label>
-        )}
-        {filterOptions.timeFrameType === "weekly" && (
-          <label className="flex justify-between py-2">
-            <button
-              className="mr-2 rounded border border-yellow-600 bg-yellow-700 px-2 text-yellow-600"
-              type="button"
-              onClick={() => {
-                const newWeek = new Date(weeklyRange);
-                newWeek.setDate(newWeek.getDate() - 7);
-                setWeeklyRange(newWeek);
-              }}
-            >
-              {"<"}
-            </button>
-            <span>{getWeek(weeklyRange)}</span>
-            <button
-              className="ml-2 rounded border border-yellow-600 bg-yellow-700 px-2 text-yellow-600"
-              type="button"
-              onClick={() => {
-                const newWeek = new Date(weeklyRange);
-                newWeek.setDate(newWeek.getDate() + 7);
-                setWeeklyRange(newWeek);
-              }}
-            >
-              {">"}
-            </button>
-          </label>
-        )}
-      </div>
     </form>
   );
 }
