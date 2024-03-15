@@ -9,8 +9,8 @@ export default async function Home() {
   // const hello = await api.post.hello.query({ text: "from tRPC" });
 
   return (
-    <main className="flex min-h-screen flex-col items-center bg-gray-800 text-white">
-      <div className="flex w-11/12 flex-col items-center justify-center">
+    <main className="flex min-h-screen flex-col items-center text-white">
+      <div className="flex w-full max-w-7xl flex-col items-center justify-center">
         <Chart />
         {/* <CrudShowcase /> */}
       </div>
