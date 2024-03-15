@@ -110,9 +110,9 @@ export default function Chart() {
   } as AgChartProps["options"];
 
   return (
-    <div className="flex w-full flex-col items-center justify-center">
-      <div className="flex w-full">
-        <div className="w-9/12 p-2">
+    <div className="flex w-full flex-col items-center bg-gray-800">
+      <div className="mt-16 flex w-full rounded bg-black">
+        <div className="w-9/12 p-4 pr-2">
           <div className="flex flex-col rounded-lg border-2 border-gray-700 bg-gray-800">
             <div className="flex justify-between border-b-2 border-gray-700">
               <div className="flex">
@@ -139,7 +139,7 @@ export default function Chart() {
             </div>
           </div>
         </div>
-        <div className="w-3/12 p-2">
+        <div className="w-3/12 p-4 pl-2">
           <FilterSettings
             setChartOptions={setChartOptions}
             setTotalData={setTotalDataState}
