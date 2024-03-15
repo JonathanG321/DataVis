@@ -47,28 +47,6 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   },
 };
 
-const simpleSeries: AgChartProps["options"]["series"] = [
-  {
-    type: "line",
-    xKey: "dateLabel",
-    yKey: "totalScore",
-    yName: "Score",
-  },
-];
-const filteredSeries: AgChartProps["options"]["series"] = [
-  {
-    type: "line",
-    xKey: "dateLabel",
-    yKey: "filteredScore",
-    yName: "Filtered Score",
-  },
-  {
-    type: "line",
-    xKey: "dateLabel",
-    yKey: "totalScore",
-    yName: "Total Score",
-  },
-];
 export default function Chart() {
   const [filterOptions, setFilterOptions] = useState(defaultFilters);
   const [chartOptions, setChartOptions] =
@@ -99,15 +77,53 @@ export default function Chart() {
   } else if (filterOptions.timeFrameType === "weekly") {
     footnote = getWeek(filterOptions.timeFrameWeek);
   }
+
   const options = {
     ...chartOptions,
     data: totalData,
     footnote,
-    series:
-      totalDataState.length === filteredDataState.length
-        ? simpleSeries
-        : filteredSeries,
+    series: [
+      ...(totalDataState.length !== filteredDataState.length
+        ? [
+            {
+              type: "line",
+              xKey: "dateLabel",
+              yKey: "filteredScore",
+              yName: "Filtered Score",
+            },
+          ]
+        : []),
+      {
+        type: "line",
+        xKey: "dateLabel",
+        yKey: "totalScore",
+        yName:
+          totalDataState.length === filteredDataState.length
+            ? "Score"
+            : "Total Score",
+      },
+    ],
   } as AgChartProps["options"];
+
+  const setters = {
+    setChartOptions,
+    setTotalData: setTotalDataState,
+    setFilteredData: setFilteredDataState,
+    setFilterOptions: setFilterOptions,
+  };
+  const totalScore = totalData.reduce(
+    (average, item) =>
+      !average ? item.totalScore : (item.totalScore + average) / 2,
+    undefined as undefined | number,
+  );
+  const filteredScore =
+    totalData.reduce(
+      (average, item) =>
+        !average || !item.filteredScore
+          ? item.filteredScore
+          : (item.filteredScore + average) / 2,
+      undefined as undefined | number,
+    ) ?? totalScore;
 
   return (
     <div className="flex w-full flex-col items-center bg-gray-800">
@@ -120,11 +136,19 @@ export default function Chart() {
                   <h5 className="text-center text-sm text-gray-500">
                     Overall Score
                   </h5>
+                  <h2 className="mt-2 rounded bg-green-900 px-2 text-3xl font-extrabold text-green-500">
+                    {totalScore ? totalScore.toFixed(1) : "N/A"}
+                  </h2>
                 </div>
-                <div className="my-2 w-32 border-r-2 border-gray-700 p-2 px-4">
+                <div className="my-2 flex w-32 flex-col items-center border-r-2 border-gray-700 p-2 px-4">
                   <h5 className="text-center text-sm text-gray-500">
                     Filtered Score
                   </h5>
+                  <h2 className="mt-2 rounded bg-yellow-800 px-2 text-3xl font-extrabold text-yellow-600">
+                    {filteredScore
+                      ? filteredScore.toFixed(1)
+                      : totalScore ?? "N/A"}
+                  </h2>
                 </div>
               </div>
               <DateRange
@@ -140,13 +164,7 @@ export default function Chart() {
           </div>
         </div>
         <div className="w-3/12 p-4 pl-2">
-          <FilterSettings
-            setChartOptions={setChartOptions}
-            setTotalData={setTotalDataState}
-            setFilteredData={setFilteredDataState}
-            filterOptions={filterOptions}
-            setFilterOptions={setFilterOptions}
-          />
+          <FilterSettings setters={setters} filterOptions={filterOptions} />
         </div>
       </div>
       {/* <CrudShowcase /> */}
