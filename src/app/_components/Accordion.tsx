@@ -8,20 +8,22 @@ type Props = PropsWithChildren & {
 export default function Accordion({ children, title }: Props) {
   const [isHidden, setIsHidden] = useState(true);
   return (
-    <div
-      onClick={() => setIsHidden(!isHidden)}
-      className="border-y-2 border-gray-700 p-4"
-    >
-      <div className="flex justify-between">
+    <div className="border-y-2 border-gray-700">
+      <div
+        onClick={() => setIsHidden(!isHidden)}
+        className="flex justify-between p-4"
+      >
         <span className="font-bold">{title}</span>
         <span>{isHidden ? "∨" : "∧"}</span>
       </div>
       <div
         className={classNames(
-          "flex min-h-0 transform flex-col overflow-hidden transition-all duration-500",
+          "flex transform flex-col overflow-hidden px-4 transition-all duration-500",
           {
             "max-h-0": isHidden,
+            "pb-0": isHidden,
             "max-h-[400px]": !isHidden,
+            "pb-4": !isHidden,
           },
         )}
       >
