@@ -5,8 +5,8 @@ import type { GraphData, DataItem } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
-import DateRange from "./DateRange";
-import { getWeek } from "~/utils/helperFunctions";
+import { getMonth, getWeek } from "~/utils/helperFunctions";
+import ChartHeader from "./ChartHeader";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   background: { fill: "rgb(31 41 55)" },
@@ -68,12 +68,18 @@ export default function Chart() {
     ([key, value]) => ({
       totalScore: value,
       filteredScore: filteredDataObject[key],
-      dateLabel: key,
+      dateLabel:
+        filterOptions.timeFrameType === "monthly"
+          ? parseInt(key.split(" ")[1] ?? key).toString()
+          : key,
     }),
   );
   let footnote = filterOptions.timeFrameYear.toString();
   if (filterOptions.timeFrameType === "monthly") {
-    footnote = filterOptions.timeFrameMonth + " " + footnote;
+    footnote =
+      getMonth(new Date(filterOptions.timeFrameMonth + 1 + "/01/2024")) +
+      " " +
+      footnote;
   } else if (filterOptions.timeFrameType === "weekly") {
     footnote = getWeek(filterOptions.timeFrameWeek);
   }
@@ -81,7 +87,7 @@ export default function Chart() {
   const options = {
     ...chartOptions,
     data: totalData,
-    footnote,
+    footnote: { enabled: true, text: footnote, textAlign: "left" },
     series: [
       ...(totalDataState.length !== filteredDataState.length
         ? [
@@ -111,53 +117,19 @@ export default function Chart() {
     setFilteredData: setFilteredDataState,
     setFilterOptions: setFilterOptions,
   };
-  const totalScore = totalData.reduce(
-    (average, item) =>
-      !average ? item.totalScore : (item.totalScore + average) / 2,
-    undefined as undefined | number,
-  );
-  const filteredScore =
-    totalData.reduce(
-      (average, item) =>
-        !average || !item.filteredScore
-          ? item.filteredScore
-          : (item.filteredScore + average) / 2,
-      undefined as undefined | number,
-    ) ?? totalScore;
 
   return (
     <div className="flex w-full flex-col items-center bg-gray-800">
       <div className="mt-16 flex w-full rounded bg-black">
         <div className="w-9/12 p-4 pr-2">
           <div className="flex flex-col rounded-lg border-2 border-gray-700 bg-gray-800">
-            <div className="flex justify-between border-b-2 border-gray-700">
-              <div className="flex">
-                <div className="my-2 flex w-32 flex-col items-center border-r-2 border-gray-700 p-2 px-4">
-                  <h5 className="text-center text-sm text-gray-500">
-                    Overall Score
-                  </h5>
-                  <h2 className="mt-2 rounded bg-green-900 px-2 text-3xl font-extrabold text-green-500">
-                    {totalScore ? totalScore.toFixed(1) : "N/A"}
-                  </h2>
-                </div>
-                <div className="my-2 flex w-32 flex-col items-center border-r-2 border-gray-700 p-2 px-4">
-                  <h5 className="text-center text-sm text-gray-500">
-                    Filtered Score
-                  </h5>
-                  <h2 className="mt-2 rounded bg-yellow-800 px-2 text-3xl font-extrabold text-yellow-600">
-                    {filteredScore
-                      ? filteredScore.toFixed(1)
-                      : totalScore ?? "N/A"}
-                  </h2>
-                </div>
-              </div>
-              <DateRange
-                filterOptions={filterOptions}
-                setFilterOptions={setFilterOptions}
-              />
-            </div>
+            <ChartHeader
+              filterOptions={filterOptions}
+              setFilterOptions={setFilterOptions}
+              totalData={totalData}
+            />
             <div className="h-120 flex justify-center overflow-hidden">
-              <div className="w-[98%]">
+              <div className="mb-2 w-full">
                 <AgChartsReact options={options} />
               </div>
             </div>
