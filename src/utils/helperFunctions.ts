@@ -23,6 +23,6 @@ export function getWeek(date: Date) {
   const startDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
   newDate.setDate(newDate.getDate() + 7);
   const endDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
-  const weekDisplay = `${startDate}${date.getFullYear() !== newDate.getFullYear() ? " " + date.getFullYear() : ""} - ${endDate} ${newDate.getFullYear()}`;
+  const weekDisplay = `${startDate}${date.getFullYear() !== newDate.getFullYear() ? ", " + date.getFullYear() : ""} - ${endDate}, ${newDate.getFullYear()}`;
   return weekDisplay;
 }
