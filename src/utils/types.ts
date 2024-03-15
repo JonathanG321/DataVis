@@ -1,3 +1,6 @@
+import type { AgChartProps } from "ag-charts-react";
+import type { Dispatch, SetStateAction } from "react";
+
 export type DataItem = {
   score: number;
   client: string;
@@ -19,3 +22,10 @@ export type GraphData = {
   filteredScore?: number;
   dateLabel: string;
 }[];
+
+export type Setters = {
+  setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
+  setChartOptions: Dispatch<SetStateAction<AgChartProps["options"]>>;
+  setTotalData: Dispatch<SetStateAction<DataItem[]>>;
+  setFilteredData: Dispatch<SetStateAction<DataItem[]>>;
+};
