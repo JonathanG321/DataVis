@@ -14,7 +14,7 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
     newWeek.setDate(newWeek.getDate() + dateChange);
     setFilterOptions({ ...filterOptions, timeFrameWeek: newWeek });
   }
-  const selectClasses = "rounded bg-gray-700 py-1 pl-2 ml-2";
+  const selectClasses = "rounded bg-gray-700 py-1 pl-2 ml-2 cursor-pointer";
   return (
     <div className="my-2 w-72 border-l-2 border-gray-700 p-2 px-4">
       <div className="flex justify-between">

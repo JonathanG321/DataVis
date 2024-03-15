@@ -11,7 +11,7 @@ export default function Accordion({ children, title }: Props) {
     <div className="border-y-2 border-gray-700">
       <div
         onClick={() => setIsHidden(!isHidden)}
-        className="flex justify-between p-4"
+        className="flex cursor-pointer justify-between p-4"
       >
         <span className="font-bold">{title}</span>
         <span>{isHidden ? "∨" : "∧"}</span>
