@@ -12,6 +12,7 @@ import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
 import { reviewTypes } from "~/utils/constants";
 import Accordion from "./Accordion";
+import classNames from "classnames";
 
 type Props = {
   filterOptions: FilterOptions;
@@ -50,14 +51,14 @@ export default function FilterSettings({ filterOptions, setters }: Props) {
         <h3 className="text-2xl font-bold">Filters</h3>
         <div className="flex">
           <button
-            className="mr-2 rounded border border-gray-600 bg-gray-700 px-2 text-sm font-bold text-gray-500"
+            className="mr-2 cursor-pointer rounded border border-gray-600 bg-gray-700 px-2 text-sm font-bold text-gray-500"
             type="button"
             onClick={(e) => resetFilters(e, filterOptions, setters)}
           >
             Reset
           </button>
           <button
-            className="rounded border border-yellow-600 bg-yellow-800 px-2 text-sm font-bold text-yellow-600"
+            className="cursor-pointer rounded border border-yellow-600 bg-yellow-800 px-2 text-sm font-bold text-yellow-600"
             type="submit"
           >
             Apply
@@ -66,9 +67,12 @@ export default function FilterSettings({ filterOptions, setters }: Props) {
       </div>
       <Accordion title="Review Type">
         {reviewTypes.map((type) => (
-          <label className="py-1" key={type}>
+          <label className="cursor-pointer py-1" key={type}>
             <input
               type="checkbox"
+              className={classNames(
+                "border-gray-500 bg-gray-800 accent-yellow-700 after:text-yellow-500 checked:border-yellow-700",
+              )}
               checked={filterOptions.reviewType.includes(type)}
               name={type}
               onChange={(e) =>
@@ -79,7 +83,12 @@ export default function FilterSettings({ filterOptions, setters }: Props) {
                 )
               }
             />
-            <span className="ml-2">
+            <span
+              className={classNames("ml-2", {
+                "text-gray-500": !filterOptions.reviewType.includes(type),
+                "text-yellow-600": filterOptions.reviewType.includes(type),
+              })}
+            >
               {type.replace(type[0] ?? "", (type[0] ?? "").toUpperCase())}
             </span>
           </label>
