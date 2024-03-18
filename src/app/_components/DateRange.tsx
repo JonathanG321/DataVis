@@ -89,9 +89,9 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
           </div>
         )}
         {filterOptions.timeFrameType === "weekly" && (
-          <div className="flex items-center justify-between py-2">
+          <div className="flex w-full items-center justify-between py-2">
             <button
-              className="mr-2 rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
+              className="rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
               type="button"
               onClick={() => setWeekly(-7)}
             >
@@ -101,7 +101,7 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
               {getWeek(filterOptions.timeFrameWeek)}
             </span>
             <button
-              className="ml-2 rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
+              className="rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
               type="button"
               onClick={() => setWeekly(7)}
             >
