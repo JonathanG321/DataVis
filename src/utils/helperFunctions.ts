@@ -26,3 +26,7 @@ export function getWeek(date: Date) {
   const weekDisplay = `${startDate}${date.getFullYear() !== newDate.getFullYear() ? ", " + date.getFullYear() : ""} - ${endDate}, ${newDate.getFullYear()}`;
   return weekDisplay;
 }
+
+export function daysInMonth(month: number, year: number) {
+  return new Date(year, month, 0).getDate();
+}
