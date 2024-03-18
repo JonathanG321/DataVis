@@ -31,7 +31,12 @@ export function generateData(): DataItem[] {
         break;
     }
     return {
-      dateLabel: dateArr[1] + " " + dateArr[2],
+      dateLabel:
+        dateArr[0] +
+        ", " +
+        dateArr[1] +
+        " " +
+        parseInt(dateArr[2] ?? "").toString(),
       date,
       score: Math.round(Math.random() * 50) / 10,
       reviewType,
