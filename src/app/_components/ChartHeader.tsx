@@ -14,7 +14,7 @@ export default function ChartHeader({
 }: Props) {
   const totalScore = totalData.reduce(
     (average, item) =>
-      !average ? item.totalScore : (item.totalScore + average) / 2,
+      !average ? item.totalScore : ((item.totalScore ?? average) + average) / 2,
     undefined as undefined | number,
   );
   const filteredScore =
