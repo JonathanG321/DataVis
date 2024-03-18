@@ -18,7 +18,7 @@ export type FilterOptions = {
 };
 
 export type GraphData = {
-  totalScore: number;
+  totalScore?: number;
   filteredScore?: number;
   dateLabel: string;
 }[];
