@@ -5,7 +5,7 @@ import type { GraphData, DataItem } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
-import { getMonth, getWeek } from "~/utils/helperFunctions";
+import { daysInMonth, getMonth, getWeek } from "~/utils/helperFunctions";
 import ChartHeader from "./ChartHeader";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
@@ -28,20 +28,6 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   legend: {
     enabled: true,
   },
-  axes: [
-    {
-      type: "category",
-      position: "bottom",
-      keys: ["dateLabel"],
-    },
-    {
-      type: "number",
-      position: "right",
-      keys: ["totalScore", "filteredScore"],
-      max: 5,
-      min: 0,
-    },
-  ],
   subtitle: {
     text: `Data from ${new Date().toDateString().split(" ")[1]} ${new Date().getFullYear()}`,
   },
@@ -49,12 +35,14 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
 
 export default function Chart() {
   const [filterOptions, setFilterOptions] = useState(defaultFilters);
+  const { timeFrameMonth, timeFrameType, timeFrameWeek, timeFrameYear } =
+    filterOptions;
   const [chartOptions, setChartOptions] =
     useState<AgChartProps["options"]>(baseChartOptions);
   const dateFilteredData = baseData.filter(
     (item) =>
-      item.date.getFullYear() === filterOptions.timeFrameYear &&
-      item.date.getMonth() === filterOptions.timeFrameMonth,
+      item.date.getFullYear() === timeFrameYear &&
+      item.date.getMonth() === timeFrameMonth,
   );
   const [totalDataState, setTotalDataState] =
     useState<DataItem[]>(dateFilteredData);
@@ -65,29 +53,111 @@ export default function Chart() {
   const totalDataObject = getDataObject(totalDataState);
   const filteredDataObject = getDataObject(filteredDataState);
   const totalData: GraphData = Object.entries(totalDataObject).map(
-    ([key, value]) => ({
-      totalScore: value,
-      filteredScore: filteredDataObject[key],
-      dateLabel:
-        filterOptions.timeFrameType === "monthly"
-          ? parseInt(key.split(" ")[1] ?? key).toString()
-          : key,
-    }),
+    ([key, value]) => {
+      let dateLabel = key;
+      if (timeFrameType === "monthly") {
+        dateLabel = key.split(" ")[2] ?? key;
+      } else if (timeFrameType === "yearly") {
+        dateLabel = key.split(" ")[1] + " " + key.split(" ")[2] ?? key;
+      }
+      return {
+        totalScore: value,
+        filteredScore: filteredDataObject[key],
+        dateLabel,
+      };
+    },
   );
-  let footnote = filterOptions.timeFrameYear.toString();
-  if (filterOptions.timeFrameType === "monthly") {
+
+  let data: GraphData = [];
+  if (timeFrameType === "weekly") {
+    data = Array.from({ length: 7 }).map((_, i) => {
+      const newDate = new Date(timeFrameWeek.toDateString());
+      newDate.setDate(newDate.getDate() + i);
+      const dateArr = newDate.toDateString().split(" ");
+      const label =
+        dateArr[0] +
+        ", " +
+        dateArr[1] +
+        " " +
+        parseInt(dateArr[2] ?? "").toString();
+      const item = totalData.find((val) => val.dateLabel === label);
+      console.log(item);
+
+      if (item) return item;
+      return {
+        totalScore: undefined,
+        filteredScore: undefined,
+        dateLabel: label,
+        date: newDate,
+      };
+    });
+  } else if (timeFrameType === "monthly") {
+    data = Array.from({
+      length: daysInMonth(timeFrameMonth, timeFrameYear),
+    })
+      .map((_, i) => {
+        const newDate = new Date(timeFrameYear, timeFrameMonth, 1);
+        newDate.setDate(newDate.getDate() + i);
+        const dateArr = newDate.toDateString().split(" ");
+        const label = parseInt(dateArr[2] ?? "").toString();
+        const item = totalData.find((val) => val.dateLabel === label);
+        if (item) return item;
+        return {
+          totalScore: undefined,
+          filteredScore: undefined,
+          dateLabel: label,
+        };
+      })
+      .sort((a, b) => parseInt(a.dateLabel) - parseInt(b.dateLabel));
+  } else if (timeFrameType === "yearly") {
+    data = Array.from({ length: 365 }).map((_, i) => {
+      const newDate = new Date(timeFrameYear, 0, 1);
+      newDate.setDate(newDate.getDate() + i);
+      const dateArr = newDate.toDateString().split(" ");
+      const label = dateArr[1] + " " + parseInt(dateArr[2] ?? "").toString();
+      const item = totalData.find((val) => val.dateLabel === label);
+      if (item) return item;
+      return {
+        totalScore: undefined,
+        filteredScore: undefined,
+        dateLabel: label,
+      };
+    });
+  }
+
+  let footnote = timeFrameYear.toString();
+  if (timeFrameType === "monthly") {
     footnote =
-      getMonth(new Date(filterOptions.timeFrameMonth + 1 + "/01/2024")) +
-      " " +
-      footnote;
-  } else if (filterOptions.timeFrameType === "weekly") {
-    footnote = getWeek(filterOptions.timeFrameWeek);
+      getMonth(new Date(timeFrameMonth + 1 + "/01/2024")) + " " + footnote;
+  } else if (timeFrameType === "weekly") {
+    footnote = getWeek(timeFrameWeek);
   }
 
   const options = {
     ...chartOptions,
-    data: totalData,
+    data,
     footnote: { enabled: true, text: footnote, textAlign: "left" },
+    axes: [
+      {
+        type: "category",
+        position: "bottom",
+        nice: true,
+        title: { enabled: true, text: footnote, color: "gray", formatter: "" },
+        // label: {
+        //   enabled: true,
+        //   formatter: ({ value }) => (value as string).split(" ")[0],
+        // },
+        tick: { enabled: true },
+        keys: ["dateLabel"],
+      },
+      {
+        type: "number",
+        position: "right",
+        keys: ["totalScore", "filteredScore"],
+        max: 5,
+        min: 0,
+      },
+    ],
     series: [
       ...(totalDataState.length !== filteredDataState.length
         ? [
@@ -96,6 +166,7 @@ export default function Chart() {
               xKey: "dateLabel",
               yKey: "filteredScore",
               yName: "Filtered Score",
+              connectMissingData: true,
             },
           ]
         : []),
@@ -107,6 +178,7 @@ export default function Chart() {
           totalDataState.length === filteredDataState.length
             ? "Score"
             : "Total Score",
+        connectMissingData: true,
       },
     ],
   } as AgChartProps["options"];
