@@ -115,7 +115,7 @@ export default function Chart() {
           interval:
             timeFrameType === "yearly" ? undefined : 1000 * 60 * 60 * 24,
         },
-        keys: ["dateValue"],
+        keys: ["date"],
       },
       {
         type: "number",
@@ -130,7 +130,7 @@ export default function Chart() {
         ? [
             {
               type: "line",
-              xKey: "dateValue",
+              xKey: "date",
               yKey: "filteredScore",
               yName: "Filtered Score",
               connectMissingData: true,
@@ -146,7 +146,7 @@ export default function Chart() {
         : []),
       {
         type: "line",
-        xKey: "dateValue",
+        xKey: "date",
         yKey: "totalScore",
         data: totalData,
         yName:
