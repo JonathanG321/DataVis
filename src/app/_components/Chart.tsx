@@ -54,17 +54,10 @@ export default function Chart() {
   const filteredDataObject = getDataObject(filteredDataState);
   const totalData: GraphData[] = Object.entries(totalDataObject).map(
     ([key, value]) => {
-      let dateLabel = key;
-      if (timeFrameType === "monthly") {
-        dateLabel = key.split(" ")[2] ?? key;
-      } else if (timeFrameType === "yearly") {
-        dateLabel = key.split(" ")[1] + " " + key.split(" ")[2] ?? key;
-      }
       return {
         totalScore: value,
         filteredScore: filteredDataObject[key],
-        dateLabel,
-        dateValue: new Date(key),
+        date: new Date(key),
       };
     },
   );

@@ -4,7 +4,7 @@ import type { GraphData } from "~/utils/types";
 
 export function ToolTip(params: AgLineSeriesTooltipRendererParams<GraphData>) {
   const { datum } = params;
-  const titleArr = datum.dateValue.toDateString().split(" ");
+  const titleArr = datum.date.toDateString().split(" ");
   titleArr.shift();
   titleArr[1] = titleArr[1] + ",";
   const title = titleArr.join(" ");

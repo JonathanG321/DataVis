@@ -6,7 +6,6 @@ export type DataItem = {
   client: string;
   reviewType: "payment" | "general" | "history" | "scheduled";
   date: Date;
-  dateLabel: string;
 };
 
 export type FilterOptions = {
@@ -20,7 +19,7 @@ export type FilterOptions = {
 export type GraphData = {
   totalScore?: number;
   filteredScore?: number;
-  dateValue: Date;
+  date: Date;
 };
 
 export type Setters = {

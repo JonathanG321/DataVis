@@ -14,7 +14,6 @@ export function generateData(): DataItem[] {
   return Array.from({ length: 365 }).map((_, i) => {
     const date = new Date();
     date.setDate(date.getDate() + i);
-    const dateArr = date.toDateString().split(" ");
     let reviewType: FilterOptions["reviewType"][0] = "scheduled";
     switch (Math.ceil(Math.random() * 4)) {
       case 1:
@@ -31,12 +30,6 @@ export function generateData(): DataItem[] {
         break;
     }
     return {
-      dateLabel:
-        dateArr[0] +
-        ", " +
-        dateArr[1] +
-        " " +
-        parseInt(dateArr[2] ?? "").toString(),
       date,
       score: Math.round(Math.random() * 50) / 10,
       reviewType,
