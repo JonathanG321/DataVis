@@ -21,7 +21,7 @@ export function getMonth(date: Date) {
 export function getWeek(date: Date) {
   const newDate = new Date(date.toDateString());
   const startDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
-  newDate.setDate(newDate.getDate() + 7);
+  newDate.setDate(newDate.getDate() + 6);
   const endDate = `${getMonth(newDate)} ${newDate.toDateString().split(" ")[2]}`;
   const weekDisplay = `${startDate}${date.getFullYear() !== newDate.getFullYear() ? ", " + date.getFullYear() : ""} - ${endDate}, ${newDate.getFullYear()}`;
   return weekDisplay;
