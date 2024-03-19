@@ -20,6 +20,8 @@ export type GraphData = {
   totalScore?: number;
   filteredScore?: number;
   date: Date;
+  totalResponses?: number;
+  filteredResponses?: number;
 };
 
 export type Setters = {
