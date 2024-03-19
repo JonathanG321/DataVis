@@ -4,7 +4,7 @@ import type { FilterOptions, GraphData, Setters } from "~/utils/types";
 type Props = {
   setFilterOptions: Setters["setFilterOptions"];
   filterOptions: FilterOptions;
-  totalData: GraphData;
+  totalData: GraphData[];
 };
 
 export default function ChartHeader({

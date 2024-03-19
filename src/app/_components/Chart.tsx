@@ -5,8 +5,11 @@ import type { GraphData, DataItem } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
-import { daysInMonth, getMonth, getWeek } from "~/utils/helperFunctions";
+import { getMonth, getWeek } from "~/utils/helperFunctions";
 import ChartHeader from "./ChartHeader";
+import { renderToString } from "react-dom/server";
+import { ToolTip } from "./ToolTip";
+import type { AgLineSeriesTooltipRendererParams } from "ag-charts-community";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   background: { fill: "rgb(31 41 55)" },
@@ -27,9 +30,6 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   },
   legend: {
     enabled: true,
-  },
-  subtitle: {
-    text: `Data from ${new Date().toDateString().split(" ")[1]} ${new Date().getFullYear()}`,
   },
 };
 
@@ -52,7 +52,7 @@ export default function Chart() {
   // const hello = await api.post.hello.query({ text: "from tRPC" });
   const totalDataObject = getDataObject(totalDataState);
   const filteredDataObject = getDataObject(filteredDataState);
-  const totalData: GraphData = Object.entries(totalDataObject).map(
+  const totalData: GraphData[] = Object.entries(totalDataObject).map(
     ([key, value]) => {
       let dateLabel = key;
       if (timeFrameType === "monthly") {
@@ -64,91 +64,65 @@ export default function Chart() {
         totalScore: value,
         filteredScore: filteredDataObject[key],
         dateLabel,
+        dateValue: new Date(key),
       };
     },
   );
 
-  let data: GraphData = [];
-  if (timeFrameType === "weekly") {
-    data = Array.from({ length: 7 }).map((_, i) => {
-      const newDate = new Date(timeFrameWeek.toDateString());
-      newDate.setDate(newDate.getDate() + i);
-      const dateArr = newDate.toDateString().split(" ");
-      const label =
-        dateArr[0] +
-        ", " +
-        dateArr[1] +
-        " " +
-        parseInt(dateArr[2] ?? "").toString();
-      const item = totalData.find((val) => val.dateLabel === label);
-      console.log(item);
-
-      if (item) return item;
-      return {
-        totalScore: undefined,
-        filteredScore: undefined,
-        dateLabel: label,
-        date: newDate,
-      };
-    });
-  } else if (timeFrameType === "monthly") {
-    data = Array.from({
-      length: daysInMonth(timeFrameMonth, timeFrameYear),
-    })
-      .map((_, i) => {
-        const newDate = new Date(timeFrameYear, timeFrameMonth, 1);
-        newDate.setDate(newDate.getDate() + i);
-        const dateArr = newDate.toDateString().split(" ");
-        const label = parseInt(dateArr[2] ?? "").toString();
-        const item = totalData.find((val) => val.dateLabel === label);
-        if (item) return item;
-        return {
-          totalScore: undefined,
-          filteredScore: undefined,
-          dateLabel: label,
-        };
-      })
-      .sort((a, b) => parseInt(a.dateLabel) - parseInt(b.dateLabel));
-  } else if (timeFrameType === "yearly") {
-    data = Array.from({ length: 365 }).map((_, i) => {
-      const newDate = new Date(timeFrameYear, 0, 1);
-      newDate.setDate(newDate.getDate() + i);
-      const dateArr = newDate.toDateString().split(" ");
-      const label = dateArr[1] + " " + parseInt(dateArr[2] ?? "").toString();
-      const item = totalData.find((val) => val.dateLabel === label);
-      if (item) return item;
-      return {
-        totalScore: undefined,
-        filteredScore: undefined,
-        dateLabel: label,
-      };
-    });
-  }
-
   let footnote = timeFrameYear.toString();
+  let minVal = new Date();
+  let maxVal = new Date();
   if (timeFrameType === "monthly") {
     footnote =
       getMonth(new Date(timeFrameMonth + 1 + "/01/2024")) + " " + footnote;
+    minVal = new Date(timeFrameYear, timeFrameMonth, 1);
+    maxVal = new Date(timeFrameYear, timeFrameMonth + 1, 0);
   } else if (timeFrameType === "weekly") {
     footnote = getWeek(timeFrameWeek);
+    const startWeek = new Date(timeFrameWeek);
+    startWeek.setHours(0, 0, 0, 1);
+    minVal = new Date(startWeek);
+    const endWeek = new Date(timeFrameWeek);
+    endWeek.setDate(endWeek.getDate() + 5);
+    endWeek.setHours(23, 59, 59, 999);
+    maxVal = endWeek;
+  } else if (timeFrameType === "yearly") {
+    minVal = new Date(timeFrameYear, 0, 1);
+    maxVal = new Date(timeFrameYear + 1, 0, 0);
   }
 
   const options = {
     ...chartOptions,
-    data,
-    footnote: { enabled: true, text: footnote, textAlign: "left" },
+    data: totalData,
     axes: [
       {
-        type: "category",
+        type: "time",
         position: "bottom",
-        nice: true,
-        title: { enabled: true, text: footnote, color: "gray", formatter: "" },
-        // label: {
-        //   enabled: true,
-        //   formatter: ({ value }) => (value as string).split(" ")[0],
-        // },
-        tick: { enabled: true },
-        keys: ["dateLabel"],
+        nice: timeFrameType === "yearly" ? false : true,
+        title: { enabled: true, text: footnote, color: "gray" },
+        min: minVal,
+        max: maxVal,
+        label: {
+          enabled: true,
+          formatter: ({ value }) => {
+            const valArr = (value as string).split(" ");
+            if (timeFrameType === "monthly") {
+              return parseInt(valArr[2] ?? "").toString();
+            } else if (timeFrameType === "weekly") {
+              return (
+                valArr[0] + ", " + valArr[1] + " " + parseInt(valArr[2] ?? "")
+              );
+            } else if (timeFrameType === "yearly") {
+              return valArr[1];
+            }
+          },
+        },
+        tick: {
+          enabled: true,
+          interval:
+            timeFrameType === "yearly" ? undefined : 1000 * 60 * 60 * 24,
+        },
+        keys: ["dateValue"],
       },
       {
         type: "number",
@@ -163,22 +137,34 @@ export default function Chart() {
         ? [
             {
               type: "line",
-              xKey: "dateLabel",
+              xKey: "dateValue",
               yKey: "filteredScore",
               yName: "Filtered Score",
               connectMissingData: true,
+              data: totalData,
+              tooltip: {
+                enabled: true,
+                renderer: (
+                  params: AgLineSeriesTooltipRendererParams<GraphData>,
+                ) => renderToString(<ToolTip {...params} />),
+              },
             },
           ]
         : []),
       {
         type: "line",
-        xKey: "dateLabel",
+        xKey: "dateValue",
         yKey: "totalScore",
+        data: totalData,
         yName:
           totalDataState.length === filteredDataState.length
             ? "Score"
             : "Total Score",
         connectMissingData: true,
+        tooltip: {
+          enabled: true,
+          renderer: (params) => renderToString(<ToolTip {...params} />),
+        },
       },
     ],
   } as AgChartProps["options"];
@@ -218,12 +204,14 @@ export default function Chart() {
 
 function getDataObject(data: DataItem[]) {
   return data.reduce(
-    (object, { score, dateLabel }) => ({
-      ...object,
-      [dateLabel]: !!object[dateLabel]
-        ? (score + (object[dateLabel] ?? 0)) / 2
-        : score,
-    }),
+    (object, { score, date }) => {
+      return {
+        ...object,
+        [date.toDateString()]: !!object[date.toDateString()]
+          ? (score + (object[date.toDateString()] ?? 0)) / 2
+          : score,
+      };
+    },
     {} as Record<string, number>,
   );
 }

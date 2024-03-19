@@ -20,8 +20,8 @@ export type FilterOptions = {
 export type GraphData = {
   totalScore?: number;
   filteredScore?: number;
-  dateLabel: string;
-}[];
+  dateValue: Date;
+};
 
 export type Setters = {
   setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
