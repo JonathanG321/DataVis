@@ -30,6 +30,7 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   },
   legend: {
     enabled: true,
+    reverseOrder: true,
   },
 };
 
@@ -58,6 +59,20 @@ export default function Chart() {
         totalScore: value,
         filteredScore: filteredDataObject[key],
         date: new Date(key),
+        filteredResponses: filteredDataState.reduce(
+          (total, current) =>
+            current.date.toDateString() === new Date(key).toDateString()
+              ? total + 1
+              : total,
+          0,
+        ),
+        totalResponses: totalDataState.reduce(
+          (total, current) =>
+            current.date.toDateString() === new Date(key).toDateString()
+              ? total + 1
+              : total,
+          0,
+        ),
       };
     },
   );
@@ -65,11 +80,15 @@ export default function Chart() {
   let footnote = timeFrameYear.toString();
   let minVal = new Date();
   let maxVal = new Date();
+  let tickValues: Date[] = [];
   if (timeFrameType === "monthly") {
     footnote =
       getMonth(new Date(timeFrameMonth + 1 + "/01/2024")) + " " + footnote;
     minVal = new Date(timeFrameYear, timeFrameMonth, 1);
     maxVal = new Date(timeFrameYear, timeFrameMonth + 1, 0);
+    tickValues = Array.from({
+      length: new Date(timeFrameYear, timeFrameMonth + 1, 0).getDate(),
+    }).map((_, i) => new Date(timeFrameYear, timeFrameMonth, i + 1));
   } else if (timeFrameType === "weekly") {
     footnote = getWeek(timeFrameWeek);
     const startWeek = new Date(timeFrameWeek);
@@ -79,10 +98,30 @@ export default function Chart() {
     endWeek.setDate(endWeek.getDate() + 5);
     endWeek.setHours(23, 59, 59, 999);
     maxVal = endWeek;
+    tickValues = Array.from({
+      length: 7,
+    }).map((_, i) => {
+      const weekDate = new Date(
+        timeFrameWeek.getFullYear(),
+        timeFrameWeek.getMonth(),
+        timeFrameWeek.getDate(),
+      );
+      weekDate.setDate(weekDate.getDate() + i);
+      return new Date(weekDate);
+    });
   } else if (timeFrameType === "yearly") {
     minVal = new Date(timeFrameYear, 0, 1);
     maxVal = new Date(timeFrameYear + 1, 0, 0);
+    tickValues = Array.from({
+      length: 12,
+    }).map((_, i) => new Date(timeFrameYear, i, 1));
   }
+
+  const tooltip = {
+    enabled: true,
+    renderer: (params: AgLineSeriesTooltipRendererParams<GraphData>) =>
+      renderToString(<ToolTip {...params} />),
+  };
 
   const options = {
     ...chartOptions,
@@ -91,7 +130,7 @@ export default function Chart() {
       {
         type: "time",
         position: "bottom",
-        nice: timeFrameType === "yearly" ? false : true,
+        nice: true,
         title: { enabled: true, text: footnote, color: "gray" },
         min: minVal,
         max: maxVal,
@@ -112,6 +151,7 @@ export default function Chart() {
         },
         tick: {
           enabled: true,
+          values: tickValues,
           interval:
             timeFrameType === "yearly" ? undefined : 1000 * 60 * 60 * 24,
         },
@@ -124,8 +164,40 @@ export default function Chart() {
         max: 5,
         min: 0,
       },
+      {
+        type: "number",
+        position: "left",
+        keys: ["totalResponses", "filteredResponses"],
+      },
     ],
     series: [
+      ...(totalDataState.length !== filteredDataState.length
+        ? [
+            {
+              type: "bar",
+              xKey: "date",
+              yKey: "filteredResponses",
+              data: totalData,
+              yName: "Filtered Responses",
+              tooltip,
+              grouped: true,
+              fill: "gray",
+            },
+          ]
+        : []),
+      {
+        type: "bar",
+        xKey: "date",
+        yKey: "totalResponses",
+        data: totalData,
+        yName:
+          totalDataState.length === filteredDataState.length
+            ? "Responses"
+            : "Total Responses",
+        tooltip,
+        grouped: true,
+        fill: "darkGray",
+      },
       ...(totalDataState.length !== filteredDataState.length
         ? [
             {
@@ -135,12 +207,7 @@ export default function Chart() {
               yName: "Filtered Score",
               connectMissingData: true,
               data: totalData,
-              tooltip: {
-                enabled: true,
-                renderer: (
-                  params: AgLineSeriesTooltipRendererParams<GraphData>,
-                ) => renderToString(<ToolTip {...params} />),
-              },
+              tooltip,
             },
           ]
         : []),
@@ -154,10 +221,7 @@ export default function Chart() {
             ? "Score"
             : "Total Score",
         connectMissingData: true,
-        tooltip: {
-          enabled: true,
-          renderer: (params) => renderToString(<ToolTip {...params} />),
-        },
+        tooltip,
       },
     ],
   } as AgChartProps["options"];
