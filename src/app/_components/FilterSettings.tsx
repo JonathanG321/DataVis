@@ -7,7 +7,7 @@ import {
   useEffect,
 } from "react";
 import type { AgChartProps } from "ag-charts-react";
-import { getMonth, getWeek, updateStateObject } from "~/utils/helperFunctions";
+import { updateStateObject } from "~/utils/helperFunctions";
 import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
 import { reviewTypes } from "~/utils/constants";
@@ -150,10 +150,7 @@ function onSubmit(
 
 function handleFilter(filters: FilterOptions, setters: Setters) {
   let newFilters = { ...filters };
-  let subtitle = newFilters.timeFrameYear.toString();
-  if (newFilters.timeFrameType === "monthly") {
-    subtitle = `${getMonth(new Date(`${newFilters.timeFrameMonth + 1}/01/2024`)) + " " + newFilters.timeFrameYear}`;
-  } else if (newFilters.timeFrameType === "weekly") {
+  if (newFilters.timeFrameType === "weekly") {
     newFilters = {
       ...filters,
       ...updateStateObject(
@@ -162,13 +159,7 @@ function handleFilter(filters: FilterOptions, setters: Setters) {
         setters.setFilterOptions,
       ),
     };
-    subtitle = getWeek(newFilters.timeFrameWeek);
   }
-  updateStateObject(
-    "subtitle",
-    { text: `Data from ${subtitle}` },
-    setters.setChartOptions,
-  );
   const newFilteredData = dateFilter(filterData(newFilters), newFilters);
   const newTotalData = dateFilter(baseData, newFilters);
   setters.setFilteredData(newFilteredData);
