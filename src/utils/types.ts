@@ -20,6 +20,7 @@ export type GraphData = {
   totalScore?: number;
   filteredScore?: number;
   date: Date;
+  dateLabel: string;
   totalResponses?: number;
   filteredResponses?: number;
 };
