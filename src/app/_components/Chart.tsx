@@ -26,6 +26,15 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
           },
         },
       },
+      bar: {
+        series: {
+          highlightStyle: {
+            series: {
+              dimOpacity: 0.5,
+            },
+          },
+        },
+      },
     },
   },
   legend: {
@@ -56,9 +65,10 @@ export default function Chart() {
   const totalData: GraphData[] = Object.entries(totalDataObject).map(
     ([key, value]) => {
       return {
-        totalScore: value,
-        filteredScore: filteredDataObject[key],
+        totalScore: parseFloat(value.toFixed(1)),
+        filteredScore: parseFloat((filteredDataObject[key] ?? 0).toFixed(1)),
         date: new Date(key),
+        dateLabel: key,
         filteredResponses: filteredDataState.reduce(
           (total, current) =>
             current.date.toDateString() === new Date(key).toDateString()
@@ -78,62 +88,98 @@ export default function Chart() {
   );
 
   let footnote = timeFrameYear.toString();
-  let minVal = new Date();
-  let maxVal = new Date();
-  let tickValues: Date[] = [];
+  let data: GraphData[] = [];
   if (timeFrameType === "monthly") {
     footnote =
       getMonth(new Date(timeFrameMonth + 1 + "/01/2024")) + " " + footnote;
-    minVal = new Date(timeFrameYear, timeFrameMonth, 1);
-    maxVal = new Date(timeFrameYear, timeFrameMonth + 1, 0);
-    tickValues = Array.from({
+    data = Array.from({
       length: new Date(timeFrameYear, timeFrameMonth + 1, 0).getDate(),
-    }).map((_, i) => new Date(timeFrameYear, timeFrameMonth, i + 1));
+    }).map((_, i): GraphData => {
+      const date = new Date(timeFrameYear, timeFrameMonth, i + 1);
+      const item = totalData.find(
+        (data) => data.date.toDateString() === date.toDateString(),
+      );
+      if (item) return item;
+      return {
+        date,
+        dateLabel: date.toDateString(),
+      };
+    });
   } else if (timeFrameType === "weekly") {
     footnote = getWeek(timeFrameWeek);
-    const startWeek = new Date(timeFrameWeek);
-    startWeek.setHours(0, 0, 0, 1);
-    minVal = new Date(startWeek);
-    const endWeek = new Date(timeFrameWeek);
-    endWeek.setDate(endWeek.getDate() + 5);
-    endWeek.setHours(23, 59, 59, 999);
-    maxVal = endWeek;
-    tickValues = Array.from({
+    data = Array.from({
       length: 7,
     }).map((_, i) => {
       const weekDate = new Date(
         timeFrameWeek.getFullYear(),
         timeFrameWeek.getMonth(),
-        timeFrameWeek.getDate(),
+        timeFrameWeek.getDate() + i,
       );
-      weekDate.setDate(weekDate.getDate() + i);
-      return new Date(weekDate);
+      const item = totalData.find(
+        (data) => data.date.toDateString() === weekDate.toDateString(),
+      );
+      if (item) return item;
+      return {
+        date: weekDate,
+        dateLabel: weekDate.toDateString(),
+      };
     });
   } else if (timeFrameType === "yearly") {
-    minVal = new Date(timeFrameYear, 0, 1);
-    maxVal = new Date(timeFrameYear + 1, 0, 0);
-    tickValues = Array.from({
+    data = Array.from({
       length: 12,
-    }).map((_, i) => new Date(timeFrameYear, i, 1));
+    }).map((_, i) => {
+      const date = new Date(timeFrameYear, i, 1);
+      const items = totalData.filter(
+        (item) => item.date.getMonth() === date.getMonth(),
+      );
+      return items.reduce(
+        (finalItem, currentItem) => {
+          return {
+            ...finalItem,
+            totalScore: finalItem.totalScore
+              ? (finalItem.totalScore +
+                  (currentItem.totalScore ?? finalItem.totalScore)) /
+                2
+              : currentItem.totalScore,
+            filteredResponses:
+              (finalItem.filteredResponses || 0) +
+              (currentItem.filteredResponses || 0),
+            filteredScore: finalItem.filteredScore
+              ? (finalItem.filteredScore +
+                  (currentItem.filteredScore ?? finalItem.filteredScore)) /
+                2
+              : currentItem.filteredScore,
+            totalResponses:
+              (finalItem.totalResponses || 0) +
+              (currentItem.totalResponses || 0),
+          };
+        },
+        {
+          date,
+          dateLabel: date.toLocaleDateString("en-US", { month: "long" }),
+          totalScore: undefined,
+          filteredResponses: 0,
+          filteredScore: undefined,
+          totalResponses: 0,
+        },
+      );
+    });
   }
 
   const tooltip = {
     enabled: true,
     renderer: (params: AgLineSeriesTooltipRendererParams<GraphData>) =>
-      renderToString(<ToolTip {...params} />),
+      renderToString(<ToolTip params={params} timeFrameType={timeFrameType} />),
   };
 
   const options = {
     ...chartOptions,
-    data: totalData,
+    data,
     axes: [
       {
-        type: "time",
+        type: "category",
         position: "bottom",
-        nice: true,
         title: { enabled: true, text: footnote, color: "gray" },
-        min: minVal,
-        max: maxVal,
         label: {
           enabled: true,
           formatter: ({ value }) => {
@@ -149,13 +195,8 @@ export default function Chart() {
             }
           },
         },
-        tick: {
-          enabled: true,
-          values: tickValues,
-          interval:
-            timeFrameType === "yearly" ? undefined : 1000 * 60 * 60 * 24,
-        },
-        keys: ["date"],
+        tick: { enabled: true },
+        keys: ["dateLabel"],
       },
       {
         type: "number",
@@ -175,21 +216,20 @@ export default function Chart() {
         ? [
             {
               type: "bar",
-              xKey: "date",
+              xKey: "dateLabel",
               yKey: "filteredResponses",
-              data: totalData,
               yName: "Filtered Responses",
               tooltip,
               grouped: true,
               fill: "gray",
+              cornerRadius: 2,
             },
           ]
         : []),
       {
         type: "bar",
-        xKey: "date",
+        xKey: "dateLabel",
         yKey: "totalResponses",
-        data: totalData,
         yName:
           totalDataState.length === filteredDataState.length
             ? "Responses"
@@ -197,31 +237,46 @@ export default function Chart() {
         tooltip,
         grouped: true,
         fill: "darkGray",
+        cornerRadius: 2,
       },
       ...(totalDataState.length !== filteredDataState.length
         ? [
             {
               type: "line",
-              xKey: "date",
+              xKey: "dateLabel",
               yKey: "filteredScore",
               yName: "Filtered Score",
-              connectMissingData: true,
-              data: totalData,
               tooltip,
+              connectMissingData: true,
+              marker: {
+                enabled: true,
+                fill: "rgb(202 138 4)",
+                stroke: "rgb(202 138 4)",
+                strokeOpacity: 0.5,
+                strokeWidth: 6,
+              },
+              stroke: "rgb(202 138 4)",
             },
           ]
         : []),
       {
         type: "line",
-        xKey: "date",
+        xKey: "dateLabel",
         yKey: "totalScore",
-        data: totalData,
         yName:
           totalDataState.length === filteredDataState.length
             ? "Score"
             : "Total Score",
-        connectMissingData: true,
         tooltip,
+        connectMissingData: true,
+        marker: {
+          enabled: true,
+          fill: "rgb(34 197 94)",
+          stroke: "rgb(34 197 94)",
+          strokeOpacity: 0.5,
+          strokeWidth: 6,
+        },
+        stroke: "rgb(34 197 94)",
       },
     ],
   } as AgChartProps["options"];
