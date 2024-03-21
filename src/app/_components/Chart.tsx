@@ -5,11 +5,7 @@ import type { GraphData, DataItem, FilterOptions } from "~/utils/types";
 import { baseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
-import { getMonth, getWeek } from "~/utils/helperFunctions";
 import ChartHeader from "./ChartHeader";
-import { renderToString } from "react-dom/server";
-import { ToolTip } from "./ToolTip";
-import type { AgLineSeriesTooltipRendererParams } from "ag-charts-community";
 import ChartDisplay from "./ChartDisplay";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
