@@ -1,30 +1,35 @@
+"use client";
 import DateRange from "./DateRange";
 import type { FilterOptions, GraphData, Setters } from "~/utils/types";
 
 type Props = {
-  setFilterOptions: Setters["setFilterOptions"];
-  filterOptions: FilterOptions;
   totalData: GraphData[];
+  filterOptions: FilterOptions;
+  setFilterOptions: Setters["setFilterOptions"];
 };
 
 export default function ChartHeader({
-  setFilterOptions,
   totalData,
   filterOptions,
+  setFilterOptions,
 }: Props) {
-  const totalScore = totalData.reduce(
-    (average, item) =>
-      !average ? item.totalScore : ((item.totalScore ?? average) + average) / 2,
-    undefined as undefined | number,
-  );
-  const filteredScore =
-    totalData.reduce(
-      (average, item) =>
-        !average || !item.filteredScore
-          ? item.filteredScore
-          : (item.filteredScore + average) / 2,
-      undefined as undefined | number,
-    ) ?? totalScore;
+  function getScore(
+    type: keyof Omit<
+      GraphData,
+      "date" | "dateLabel" | "totalResponses" | "filteredResponses"
+    >,
+  ) {
+    const firstData = totalData[0] ? totalData[0][type] : undefined;
+    return firstData
+      ? totalData.reduce(
+          (average, item) => (item[type] ?? average + average) / 2,
+          firstData,
+        )
+      : undefined;
+  }
+
+  const totalScore = getScore("totalScore");
+  const filteredScore = getScore("filteredScore");
 
   return (
     <div className="flex justify-between border-b-2 border-gray-700">
