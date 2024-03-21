@@ -29,88 +29,128 @@ export default function ChartDisplay({
   let data: GraphData[] = [];
   if (timeFrameType === "monthly") {
     footnote =
-      getMonth(new Date(timeFrameYear, timeFrameMonth + 1, 1)) + " " + footnote;
-    data = Array.from({
-      length: new Date(timeFrameYear, timeFrameMonth + 1, 0).getDate(),
-    }).map((_, i): GraphData => {
-      const date = new Date(timeFrameYear, timeFrameMonth, i + 1);
-      const item = totalData.find(
-        (data) => data.date.toDateString() === date.toDateString(),
-      );
-      if (item) return item;
-      return {
-        date,
-        dateLabel: date.toDateString(),
-      };
-    });
+      getMonth(new Date(timeFrameYear, timeFrameMonth + 1)) + " " + footnote;
+    data = getMonthlyData(totalData, filterOptions);
   } else if (timeFrameType === "weekly") {
     footnote = getWeek(timeFrameWeek);
-    data = Array.from({
-      length: 7,
-    }).map((_, i) => {
-      const weekDate = new Date(
-        timeFrameWeek.getFullYear(),
-        timeFrameWeek.getMonth(),
-        timeFrameWeek.getDate() + i,
-      );
-      const item = totalData.find(
-        (data) => data.date.toDateString() === weekDate.toDateString(),
-      );
-      if (item) return item;
-      return {
-        date: weekDate,
-        dateLabel: weekDate.toDateString(),
-      };
-    });
+    data = getWeeklyData(totalData, timeFrameWeek);
   } else if (timeFrameType === "yearly") {
-    data = Array.from({
-      length: 12,
-    }).map((_, i) => {
-      const date = new Date(timeFrameYear, i, 1);
-      const items = totalData.filter(
-        (item) => item.date.getMonth() === date.getMonth(),
-      );
-      return items.reduce(
-        (finalItem, currentItem) => {
-          return {
-            ...finalItem,
-            totalScore: finalItem.totalScore
-              ? (finalItem.totalScore +
-                  (currentItem.totalScore ?? finalItem.totalScore)) /
-                2
-              : currentItem.totalScore,
-            filteredResponses:
-              (finalItem.filteredResponses || 0) +
-              (currentItem.filteredResponses || 0),
-            filteredScore: finalItem.filteredScore
-              ? (finalItem.filteredScore +
-                  (currentItem.filteredScore ?? finalItem.filteredScore)) /
-                2
-              : currentItem.filteredScore,
-            totalResponses:
-              (finalItem.totalResponses || 0) +
-              (currentItem.totalResponses || 0),
-          };
-        },
-        {
-          date,
-          dateLabel: date.toLocaleDateString("en-US", { month: "long" }),
-          totalScore: undefined,
-          filteredResponses: 0,
-          filteredScore: undefined,
-          totalResponses: 0,
-        },
-      );
-    });
+    data = getYearlyData(totalData, timeFrameYear);
   }
+  const options = {
+    data,
+    ...chartOptions,
+    ...getChartOptions(
+      totalDataState,
+      filteredDataState,
+      timeFrameType,
+      footnote,
+    ),
+  } as AgChartProps["options"];
+  return (
+    <div className="h-120 flex justify-center overflow-hidden">
+      <div className="mb-2 w-full">
+        <AgChartsReact options={options} />
+      </div>
+    </div>
+  );
+}
+
+function getMonthlyData(totalData: GraphData[], filterOptions: FilterOptions) {
+  const { timeFrameYear, timeFrameMonth } = filterOptions;
+  return Array.from({
+    length: new Date(timeFrameYear, timeFrameMonth + 1, 0).getDate(),
+  }).map((_, i): GraphData => {
+    const date = new Date(timeFrameYear, timeFrameMonth, i + 1);
+    const item = totalData.find(
+      (data) => data.date.toDateString() === date.toDateString(),
+    );
+    if (item) return item;
+    return {
+      date,
+      dateLabel: date.toDateString(),
+    };
+  });
+}
+
+function getWeeklyData(
+  totalData: GraphData[],
+  timeFrameWeek: FilterOptions["timeFrameWeek"],
+) {
+  return Array.from({
+    length: 7,
+  }).map((_, i) => {
+    const weekDate = new Date(
+      timeFrameWeek.getFullYear(),
+      timeFrameWeek.getMonth(),
+      timeFrameWeek.getDate() + i,
+    );
+    const item = totalData.find(
+      (data) => data.date.toDateString() === weekDate.toDateString(),
+    );
+    if (item) return item;
+    return {
+      date: weekDate,
+      dateLabel: weekDate.toDateString(),
+    };
+  });
+}
+
+function getYearlyData(
+  totalData: GraphData[],
+  timeFrameYear: FilterOptions["timeFrameYear"],
+) {
+  return Array.from({
+    length: 12,
+  }).map((_, i) => {
+    const date = new Date(timeFrameYear, i, 1);
+    const items = totalData.filter(
+      (item) => item.date.getMonth() === date.getMonth(),
+    );
+    return items.reduce(
+      (finalItem, currentItem) => {
+        const { totalScore: finTScore, filteredScore: finFScore } = finalItem;
+        const { totalScore: curTScore, filteredScore: curFScore } = currentItem;
+        return {
+          ...finalItem,
+          totalScore: finTScore
+            ? (finTScore + (curTScore ?? finTScore)) / 2
+            : curTScore,
+          filteredResponses:
+            (finalItem.filteredResponses || 0) +
+            (currentItem.filteredResponses || 0),
+          filteredScore: finFScore
+            ? (finFScore + (curFScore ?? finFScore)) / 2
+            : curFScore,
+          totalResponses:
+            (finalItem.totalResponses || 0) + (currentItem.totalResponses || 0),
+        };
+      },
+      {
+        date,
+        dateLabel: date.toLocaleDateString("en-US", { month: "long" }),
+        totalScore: undefined,
+        filteredResponses: 0,
+        filteredScore: undefined,
+        totalResponses: 0,
+      },
+    );
+  });
+}
+
+function getChartOptions(
+  totalDataState: DataItem[],
+  filteredDataState: DataItem[],
+  timeFrameType: FilterOptions["timeFrameType"],
+  footnote: string,
+) {
   const tooltip = {
     enabled: true,
     renderer: (params: AgLineSeriesTooltipRendererParams<GraphData>) =>
       renderToString(<ToolTip params={params} timeFrameType={timeFrameType} />),
   };
-  const options = {
-    ...chartOptions,
-    data,
+
+  return {
     axes: [
       {
         type: "category",
@@ -216,11 +256,4 @@ export default function ChartDisplay({
       },
     ],
   } as AgChartProps["options"];
-  return (
-    <div className="h-120 flex justify-center overflow-hidden">
-      <div className="mb-2 w-full">
-        <AgChartsReact options={options} />
-      </div>
-    </div>
-  );
 }
