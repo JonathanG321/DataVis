@@ -1,14 +1,16 @@
 import type { DataItem, FilterOptions } from "./types";
 
-export const baseData: DataItem[] = [
-  ...generateData(),
-  ...generateData(),
-  ...generateData(),
-  ...generateData(),
-  ...generateData(),
-  ...generateData(),
-  ...generateData(),
-];
+export function getBaseData() {
+  return [
+    ...generateData(),
+    ...generateData(),
+    ...generateData(),
+    ...generateData(),
+    ...generateData(),
+    ...generateData(),
+    ...generateData(),
+  ];
+}
 
 export function generateData(): DataItem[] {
   return Array.from({ length: 365 }).map((_, i) => {
