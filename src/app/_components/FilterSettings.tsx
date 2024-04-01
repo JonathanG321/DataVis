@@ -8,7 +8,6 @@ import {
 } from "react";
 import type { AgChartProps } from "ag-charts-react";
 import { updateStateObject } from "~/utils/helperFunctions";
-import { baseData } from "~/utils/testData";
 import type { FilterOptions, DataItem } from "~/utils/types";
 import { reviewTypes } from "~/utils/constants";
 import Accordion from "./Accordion";
@@ -22,6 +21,7 @@ type Props = {
     setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
     setChartOptions: Dispatch<SetStateAction<AgChartProps["options"]>>;
   };
+  baseData: DataItem[];
 };
 
 type Setters = {
@@ -31,9 +31,13 @@ type Setters = {
   setFilteredData: Dispatch<SetStateAction<DataItem[]>>;
 };
 
-export default function FilterSettings({ filterOptions, setters }: Props) {
+export default function FilterSettings({
+  filterOptions,
+  setters,
+  baseData,
+}: Props) {
   useEffect(() => {
-    handleFilter(filterOptions, setters);
+    handleFilter(filterOptions, setters, baseData);
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [
     filterOptions.timeFrameType,
@@ -45,7 +49,7 @@ export default function FilterSettings({ filterOptions, setters }: Props) {
   return (
     <form
       className="h-full rounded-lg border-2 border-gray-700 bg-gray-800"
-      onSubmit={(e) => onSubmit(e, filterOptions, setters)}
+      onSubmit={(e) => onSubmit(e, filterOptions, setters, baseData)}
     >
       <div className="flex justify-between p-4">
         <h3 className="text-2xl font-bold">Filters</h3>
@@ -53,7 +57,7 @@ export default function FilterSettings({ filterOptions, setters }: Props) {
           <button
             className="mr-2 cursor-pointer rounded border border-gray-600 bg-gray-700 px-2 text-sm font-bold text-gray-500"
             type="button"
-            onClick={(e) => resetFilters(e, filterOptions, setters)}
+            onClick={(e) => resetFilters(e, filterOptions, setters, baseData)}
           >
             Reset
           </button>
@@ -125,7 +129,7 @@ function dateFilter(data: DataItem[], settings: FilterOptions) {
   return displayData;
 }
 
-function filterData(settings: FilterOptions): DataItem[] {
+function filterData(settings: FilterOptions, baseData: DataItem[]): DataItem[] {
   const newArr = baseData.filter((item) => {
     let shouldKeep = true;
     if (
@@ -143,12 +147,17 @@ function onSubmit(
   e: FormEvent<HTMLFormElement>,
   filters: FilterOptions,
   setters: Setters,
+  baseData: DataItem[],
 ) {
   e.preventDefault();
-  handleFilter(filters, setters);
+  handleFilter(filters, setters, baseData);
 }
 
-function handleFilter(filters: FilterOptions, setters: Setters) {
+function handleFilter(
+  filters: FilterOptions,
+  setters: Setters,
+  baseData: DataItem[],
+) {
   let newFilters = { ...filters };
   if (newFilters.timeFrameType === "weekly") {
     newFilters = {
@@ -160,7 +169,10 @@ function handleFilter(filters: FilterOptions, setters: Setters) {
       ),
     };
   }
-  const newFilteredData = dateFilter(filterData(newFilters), newFilters);
+  const newFilteredData = dateFilter(
+    filterData(newFilters, baseData),
+    newFilters,
+  );
   const newTotalData = dateFilter(baseData, newFilters);
   setters.setFilteredData(newFilteredData);
   setters.setTotalData(newTotalData);
@@ -183,8 +195,9 @@ function resetFilters(
   e: MouseEvent<HTMLButtonElement, globalThis.MouseEvent>,
   filterOptions: FilterOptions,
   setters: Setters,
+  baseData: DataItem[],
 ) {
   e.preventDefault();
   setters.setFilterOptions({ ...filterOptions, reviewType: [] });
-  handleFilter({ ...filterOptions, reviewType: [] }, setters);
+  handleFilter({ ...filterOptions, reviewType: [] }, setters, baseData);
 }
