@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
-import { type AgChartProps, AgChartsReact } from "ag-charts-react";
+import { type AgChartProps } from "ag-charts-react";
 import type { GraphData, DataItem, FilterOptions } from "~/utils/types";
-import { baseData } from "~/utils/testData";
+import { getBaseData } from "~/utils/testData";
 import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
 import ChartHeader from "./ChartHeader";
@@ -41,9 +41,9 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
 };
 
 export default function Chart() {
+  const [baseData] = useState(getBaseData());
   const [filterOptions, setFilterOptions] = useState(defaultFilters);
-  const { timeFrameMonth, timeFrameType, timeFrameWeek, timeFrameYear } =
-    filterOptions;
+  const { timeFrameMonth, timeFrameType, timeFrameYear } = filterOptions;
   const [chartOptions, setChartOptions] =
     useState<AgChartProps["options"]>(baseChartOptions);
   const dateFilteredData = baseData.filter(
@@ -116,7 +116,11 @@ export default function Chart() {
           </div>
         </div>
         <div className="w-3/12 p-4 pl-2">
-          <FilterSettings setters={setters} filterOptions={filterOptions} />
+          <FilterSettings
+            setters={setters}
+            filterOptions={filterOptions}
+            baseData={baseData}
+          />
         </div>
       </div>
       {/* <CrudShowcase /> */}
