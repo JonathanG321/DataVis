@@ -1,7 +1,7 @@
 import type { Dispatch, SetStateAction } from "react";
 import { timeRange } from "~/utils/constants";
 import { getWeek, updateStateObject } from "~/utils/helperFunctions";
-import { type FilterOptions } from "~/utils/types";
+import type { FilterOptions } from "~/utils/types";
 
 type Props = {
   filterOptions: FilterOptions;
@@ -12,7 +12,8 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
   function setWeekly(dateChange: number) {
     const newWeek = new Date(filterOptions.timeFrameWeek);
     newWeek.setDate(newWeek.getDate() + dateChange);
-    setFilterOptions({ ...filterOptions, timeFrameWeek: newWeek });
+    const newFilterOptions = { ...filterOptions, timeFrameWeek: newWeek };
+    setFilterOptions(newFilterOptions);
   }
   const selectClasses = "rounded bg-gray-700 py-1 pl-2 ml-2 cursor-pointer";
   return (
