@@ -102,32 +102,32 @@ export default function FilterSettings({
   );
 }
 
-function dateFilter(data: DataItem[], settings: FilterOptions) {
-  const { timeFrameWeek, timeFrameMonth, timeFrameYear, timeFrameType } =
-    settings;
-  const weekDate = new Date(timeFrameWeek.toDateString());
-  const day = weekDate.getDay();
-  weekDate.setDate(weekDate.getDate() - day);
-  const displayData = data.filter((item) => {
-    const itemIsYear = item.date.getFullYear() === timeFrameYear;
-    const itemIsMonth = item.date.getMonth() === timeFrameMonth;
+// function dateFilter(data: DataItem[], settings: FilterOptions) {
+//   const { timeFrameWeek, timeFrameMonth, timeFrameYear, timeFrameType } =
+//     settings;
+//   const weekDate = new Date(timeFrameWeek.toDateString());
+//   const day = weekDate.getDay();
+//   weekDate.setDate(weekDate.getDate() - day);
+//   const displayData = data.filter((item) => {
+//     const itemIsYear = item.date.getFullYear() === timeFrameYear;
+//     const itemIsMonth = item.date.getMonth() === timeFrameMonth;
 
-    if (timeFrameType === "yearly") {
-      return itemIsYear;
-    } else if (timeFrameType === "monthly") {
-      return itemIsYear && itemIsMonth;
-    } else if (timeFrameType === "weekly") {
-      const startDate = new Date(weekDate);
-      startDate.setDate(startDate.getDate() - startDate.getDay());
+//     if (timeFrameType === "yearly") {
+//       return itemIsYear;
+//     } else if (timeFrameType === "monthly") {
+//       return itemIsYear && itemIsMonth;
+//     } else if (timeFrameType === "weekly") {
+//       const startDate = new Date(weekDate);
+//       startDate.setDate(startDate.getDate() - startDate.getDay());
 
-      const endDate = new Date(startDate);
-      endDate.setDate(endDate.getDate() + 7);
+//       const endDate = new Date(startDate);
+//       endDate.setDate(endDate.getDate() + 7);
 
-      return item.date >= startDate && item.date < endDate;
-    }
-  });
-  return displayData;
-}
+//       return item.date >= startDate && item.date < endDate;
+//     }
+//   });
+//   return displayData;
+// }
 
 function filterData(settings: FilterOptions, baseData: DataItem[]): DataItem[] {
   const newArr = baseData.filter((item) => {
@@ -169,13 +169,9 @@ function handleFilter(
       ),
     };
   }
-  const newFilteredData = dateFilter(
-    filterData(newFilters, baseData),
-    newFilters,
-  );
-  const newTotalData = dateFilter(baseData, newFilters);
+  const newFilteredData = filterData(newFilters, baseData);
   setters.setFilteredData(newFilteredData);
-  setters.setTotalData(newTotalData);
+  setters.setTotalData(baseData);
 }
 
 function handleReviewTypeChange(
