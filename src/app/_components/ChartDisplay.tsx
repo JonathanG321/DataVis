@@ -1,10 +1,10 @@
-import { AgChartProps, AgChartsReact } from "ag-charts-react";
+import { type AgChartProps, AgChartsReact } from "ag-charts-react";
 import { ToolTip } from "./ToolTip";
-import {
+import type {
   AgChartOptions,
   AgLineSeriesTooltipRendererParams,
 } from "ag-charts-community";
-import { DataItem, FilterOptions, GraphData } from "~/utils/types";
+import type { DataItem, FilterOptions, GraphData } from "~/utils/types";
 import { renderToString } from "react-dom/server";
 import { getMonth, getWeek } from "~/utils/helperFunctions";
 
@@ -48,7 +48,7 @@ export default function ChartDisplay({
     ),
   } as AgChartProps["options"];
   return (
-    <div className="h-120 flex justify-center overflow-hidden">
+    <div className="flex h-120 justify-center overflow-hidden">
       <div className="mb-2 w-full">
         <AgChartsReact options={options} />
       </div>
@@ -117,13 +117,13 @@ function getYearlyData(
             ? (finTScore + (curTScore ?? finTScore)) / 2
             : curTScore,
           filteredResponses:
-            (finalItem.filteredResponses || 0) +
-            (currentItem.filteredResponses || 0),
+            (finalItem.filteredResponses ?? 0) +
+            (currentItem.filteredResponses ?? 0),
           filteredScore: finFScore
             ? (finFScore + (curFScore ?? finFScore)) / 2
             : curFScore,
           totalResponses:
-            (finalItem.totalResponses || 0) + (currentItem.totalResponses || 0),
+            (finalItem.totalResponses ?? 0) + (currentItem.totalResponses ?? 0),
         };
       },
       {
