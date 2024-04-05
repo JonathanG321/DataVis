@@ -2,11 +2,9 @@
 import { useState } from "react";
 import { type AgChartProps } from "ag-charts-react";
 import type { GraphData, DataItem, FilterOptions } from "~/utils/types";
-import { getBaseData } from "~/utils/testData";
-import FilterSettings from "./FilterSettings";
 import { defaultFilters } from "~/utils/constants";
-import ChartHeader from "./ChartHeader";
-import ChartDisplay from "./ChartDisplay";
+import InnerChart from "./InnerChart";
+import FilterSettings from "./FilterSettings";
 
 const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   background: { fill: "rgb(31 41 55)" },
@@ -40,8 +38,10 @@ const baseChartOptions: Exclude<AgChartProps["options"], "data"> = {
   },
 };
 
-export default function Chart() {
-  const [baseData] = useState(getBaseData());
+type Props = { serverData: DataItem[] };
+
+export default function Chart({ serverData }: Props) {
+  const [baseData, setBaseData] = useState<DataItem[]>(serverData);
   const [filterOptions, setFilterOptions] = useState(defaultFilters);
   const { timeFrameMonth, timeFrameType, timeFrameYear } = filterOptions;
   const [chartOptions, setChartOptions] =
@@ -96,24 +96,28 @@ export default function Chart() {
     setFilterOptions: setFilterOptions,
   };
 
+  // useEffect(() => {
+  //   const { data: newData, error } = api.chart.getData.useQuery(filterOptions);
+  //   if (error ?? !newData) {
+  //     console.log(error);
+  //     return;
+  //   }
+  //   setBaseData(newData);
+  // }, [filterOptions]);
+
   return (
     <div className="flex w-full flex-col items-center bg-gray-800">
       <div className="mt-16 flex w-full rounded bg-black">
         <div className="w-9/12 p-4 pr-2">
-          <div className="flex flex-col rounded-lg border-2 border-gray-700 bg-gray-800">
-            <ChartHeader
-              filterOptions={filterOptions}
-              setFilterOptions={setFilterOptions}
-              totalData={totalData}
-            />
-            <ChartDisplay
-              filteredDataState={filteredDataState}
-              totalDataState={totalDataState}
-              totalData={totalData}
-              chartOptions={chartOptions}
-              filterOptions={filterOptions}
-            />
-          </div>
+          <InnerChart
+            chartOptions={chartOptions}
+            filterOptions={filterOptions}
+            filteredDataState={filteredDataState}
+            setBaseData={setBaseData}
+            setters={setters}
+            totalData={totalData}
+            totalDataState={totalDataState}
+          />
         </div>
         <div className="w-3/12 p-4 pl-2">
           <FilterSettings
@@ -123,7 +127,6 @@ export default function Chart() {
           />
         </div>
       </div>
-      {/* <CrudShowcase /> */}
     </div>
   );
 }
