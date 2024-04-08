@@ -1,8 +1,8 @@
 "use client";
 import { useState } from "react";
 import { type AgChartProps } from "ag-charts-react";
-import type { GraphData, DataItem, FilterOptions } from "~/utils/types";
-import { defaultFilters } from "~/utils/constants";
+import type { GraphData, DataItem, DateOptions } from "~/utils/types";
+import { dateFilters, defaultFilters } from "~/utils/constants";
 import InnerChart from "./InnerChart";
 import FilterSettings from "./FilterSettings";
 
@@ -42,8 +42,9 @@ type Props = { serverData: DataItem[] };
 
 export default function Chart({ serverData }: Props) {
   const [baseData, setBaseData] = useState<DataItem[]>(serverData);
+  const [dateOptions, setDateOptions] = useState(dateFilters);
   const [filterOptions, setFilterOptions] = useState(defaultFilters);
-  const { timeFrameMonth, timeFrameType, timeFrameYear } = filterOptions;
+  const { timeFrameMonth, timeFrameType, timeFrameYear } = dateOptions;
   const [chartOptions, setChartOptions] =
     useState<AgChartProps["options"]>(baseChartOptions);
   const dateFilteredData = baseData.filter(
@@ -94,6 +95,7 @@ export default function Chart({ serverData }: Props) {
     setTotalData: setTotalDataState,
     setFilteredData: setFilteredDataState,
     setFilterOptions: setFilterOptions,
+    setDateOptions: setDateOptions,
   };
 
   // useEffect(() => {
@@ -111,7 +113,7 @@ export default function Chart({ serverData }: Props) {
         <div className="w-9/12 p-4 pr-2">
           <InnerChart
             chartOptions={chartOptions}
-            filterOptions={filterOptions}
+            dateOptions={dateOptions}
             filteredDataState={filteredDataState}
             setBaseData={setBaseData}
             setters={setters}
@@ -133,7 +135,7 @@ export default function Chart({ serverData }: Props) {
 
 function getDataObject(
   data: DataItem[],
-  timeFrameType: FilterOptions["timeFrameType"],
+  timeFrameType: DateOptions["timeFrameType"],
 ) {
   return data.reduce(
     (object, { score, date }) => {
