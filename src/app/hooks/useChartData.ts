@@ -1,9 +1,9 @@
 import type { Dispatch, SetStateAction } from "react";
 import { api } from "~/trpc/react";
-import type { DataItem, FilterOptions } from "~/utils/types";
+import type { DataItem, DateOptions } from "~/utils/types";
 
 export default function useChartData(
-  filters: FilterOptions,
+  filters: DateOptions,
   setBaseData: Dispatch<SetStateAction<DataItem[]>>,
 ) {
   const { data: newData, error } = api.chart.getData.useQuery(filters);
