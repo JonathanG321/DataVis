@@ -4,12 +4,12 @@ import type {
   AgChartOptions,
   AgLineSeriesTooltipRendererParams,
 } from "ag-charts-community";
-import type { DataItem, FilterOptions, GraphData } from "~/utils/types";
+import type { DataItem, DateOptions, GraphData } from "~/utils/types";
 import { renderToString } from "react-dom/server";
 import { getMonth, getWeek } from "~/utils/helperFunctions";
 
 type Props = {
-  filterOptions: FilterOptions;
+  dateOptions: DateOptions;
   chartOptions: AgChartOptions;
   totalData: GraphData[];
   totalDataState: DataItem[];
@@ -17,20 +17,20 @@ type Props = {
 };
 
 export default function ChartDisplay({
-  filterOptions,
+  dateOptions,
   chartOptions,
   totalData,
   totalDataState,
   filteredDataState,
 }: Props) {
   const { timeFrameYear, timeFrameType, timeFrameMonth, timeFrameWeek } =
-    filterOptions;
+    dateOptions;
   let footnote = timeFrameYear.toString();
   let data: GraphData[] = [];
   if (timeFrameType === "monthly") {
     footnote =
       getMonth(new Date(timeFrameYear, timeFrameMonth + 1)) + " " + footnote;
-    data = getMonthlyData(totalData, filterOptions);
+    data = getMonthlyData(totalData, dateOptions);
   } else if (timeFrameType === "weekly") {
     footnote = getWeek(timeFrameWeek);
     data = getWeeklyData(totalData, timeFrameWeek);
@@ -56,8 +56,8 @@ export default function ChartDisplay({
   );
 }
 
-function getMonthlyData(totalData: GraphData[], filterOptions: FilterOptions) {
-  const { timeFrameYear, timeFrameMonth } = filterOptions;
+function getMonthlyData(totalData: GraphData[], dateOptions: DateOptions) {
+  const { timeFrameYear, timeFrameMonth } = dateOptions;
   return Array.from({
     length: new Date(timeFrameYear, timeFrameMonth + 1, 0).getDate(),
   }).map((_, i): GraphData => {
@@ -75,7 +75,7 @@ function getMonthlyData(totalData: GraphData[], filterOptions: FilterOptions) {
 
 function getWeeklyData(
   totalData: GraphData[],
-  timeFrameWeek: FilterOptions["timeFrameWeek"],
+  timeFrameWeek: DateOptions["timeFrameWeek"],
 ) {
   return Array.from({
     length: 7,
@@ -98,7 +98,7 @@ function getWeeklyData(
 
 function getYearlyData(
   totalData: GraphData[],
-  timeFrameYear: FilterOptions["timeFrameYear"],
+  timeFrameYear: DateOptions["timeFrameYear"],
 ) {
   return Array.from({
     length: 12,
@@ -141,7 +141,7 @@ function getYearlyData(
 function getChartOptions(
   totalDataState: DataItem[],
   filteredDataState: DataItem[],
-  timeFrameType: FilterOptions["timeFrameType"],
+  timeFrameType: DateOptions["timeFrameType"],
   footnote: string,
 ) {
   const tooltip = {
