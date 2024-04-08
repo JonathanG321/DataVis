@@ -1,17 +1,17 @@
 "use client";
 import DateRange from "./DateRange";
-import type { FilterOptions, GraphData, Setters } from "~/utils/types";
+import type { DateOptions, GraphData, Setters } from "~/utils/types";
 
 type Props = {
   totalData: GraphData[];
-  filterOptions: FilterOptions;
-  setFilterOptions: Setters["setFilterOptions"];
+  dateOptions: DateOptions;
+  setDateOptions: Setters["setDateOptions"];
 };
 
 export default function ChartHeader({
   totalData,
-  filterOptions,
-  setFilterOptions,
+  dateOptions,
+  setDateOptions,
 }: Props) {
   function getScore(
     type: keyof Omit<
@@ -47,10 +47,7 @@ export default function ChartHeader({
           </h2>
         </div>
       </div>
-      <DateRange
-        filterOptions={filterOptions}
-        setFilterOptions={setFilterOptions}
-      />
+      <DateRange dateOptions={dateOptions} setDateOptions={setDateOptions} />
     </div>
   );
 }
