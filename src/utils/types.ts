@@ -8,12 +8,15 @@ export type DataItem = {
   date: Date;
 };
 
-export type FilterOptions = {
-  reviewType: ("payment" | "general" | "history" | "scheduled")[];
+export type DateOptions = {
   timeFrameYear: number;
   timeFrameMonth: number;
   timeFrameWeek: Date;
   timeFrameType: "weekly" | "monthly" | "yearly";
+};
+
+export type FilterOptions = {
+  reviewType: ("payment" | "general" | "history" | "scheduled")[];
 };
 
 export type GraphData = {
@@ -27,6 +30,7 @@ export type GraphData = {
 
 export type Setters = {
   setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
+  setDateOptions: Dispatch<SetStateAction<DateOptions>>;
   setChartOptions: Dispatch<SetStateAction<AgChartProps["options"]>>;
   setTotalData: Dispatch<SetStateAction<DataItem[]>>;
   setFilteredData: Dispatch<SetStateAction<DataItem[]>>;
