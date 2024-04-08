@@ -2,7 +2,7 @@ import { z } from "zod";
 
 import { createTRPCRouter, publicProcedure } from "~/server/api/trpc";
 import { getBaseData } from "~/utils/testData";
-import type { DataItem, FilterOptions } from "~/utils/types";
+import type { DataItem, DateOptions } from "~/utils/types";
 
 const baseData = getBaseData();
 
@@ -18,14 +18,6 @@ export const chartRouter = createTRPCRouter({
         ]),
         timeFrameYear: z.number(),
         timeFrameWeek: z.date(),
-        reviewType: z.array(
-          z.union([
-            z.literal("payment"),
-            z.literal("general"),
-            z.literal("history"),
-            z.literal("scheduled"),
-          ]),
-        ),
       }),
     )
     .query(({ input }): DataItem[] => {
@@ -33,7 +25,7 @@ export const chartRouter = createTRPCRouter({
     }),
 });
 
-function dateFilter(data: DataItem[], settings: FilterOptions) {
+function dateFilter(data: DataItem[], settings: DateOptions) {
   const { timeFrameWeek, timeFrameMonth, timeFrameYear, timeFrameType } =
     settings;
   const weekDate = new Date(timeFrameWeek.toDateString());
