@@ -1,19 +1,19 @@
 import type { Dispatch, SetStateAction } from "react";
 import { timeRange } from "~/utils/constants";
 import { getWeek, updateStateObject } from "~/utils/helperFunctions";
-import type { FilterOptions } from "~/utils/types";
+import type { DateOptions } from "~/utils/types";
 
 type Props = {
-  filterOptions: FilterOptions;
-  setFilterOptions: Dispatch<SetStateAction<FilterOptions>>;
+  dateOptions: DateOptions;
+  setDateOptions: Dispatch<SetStateAction<DateOptions>>;
 };
 
-export default function DateRange({ setFilterOptions, filterOptions }: Props) {
+export default function DateRange({ setDateOptions, dateOptions }: Props) {
   function setWeekly(dateChange: number) {
-    const newWeek = new Date(filterOptions.timeFrameWeek);
+    const newWeek = new Date(dateOptions.timeFrameWeek);
     newWeek.setDate(newWeek.getDate() + dateChange);
-    const newFilterOptions = { ...filterOptions, timeFrameWeek: newWeek };
-    setFilterOptions(newFilterOptions);
+    const newDateOptions = { ...dateOptions, timeFrameWeek: newWeek };
+    setDateOptions(newDateOptions);
   }
   const selectClasses = "rounded bg-gray-700 py-1 pl-2 ml-2 cursor-pointer";
   return (
@@ -23,12 +23,12 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
         <div className="flex justify-between">
           <select
             className={selectClasses}
-            value={filterOptions.timeFrameType}
+            value={dateOptions.timeFrameType}
             onChange={(e) =>
               updateStateObject(
                 "timeFrameType",
-                e.target.value as FilterOptions["timeFrameType"],
-                setFilterOptions,
+                e.target.value as DateOptions["timeFrameType"],
+                setDateOptions,
               )
             }
           >
@@ -41,16 +41,16 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
         </div>
       </div>
       <div className="flex justify-end">
-        {filterOptions.timeFrameType === "monthly" && (
+        {dateOptions.timeFrameType === "monthly" && (
           <div className="flex justify-between py-2">
             <select
               className={selectClasses}
-              value={filterOptions.timeFrameMonth}
+              value={dateOptions.timeFrameMonth}
               onChange={(e) =>
                 updateStateObject(
                   "timeFrameMonth",
                   parseInt(e.target.value),
-                  setFilterOptions,
+                  setDateOptions,
                 )
               }
             >
@@ -67,17 +67,17 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
             </select>
           </div>
         )}
-        {(filterOptions.timeFrameType === "yearly" ||
-          filterOptions.timeFrameType === "monthly") && (
+        {(dateOptions.timeFrameType === "yearly" ||
+          dateOptions.timeFrameType === "monthly") && (
           <div className="flex justify-between py-2">
             <select
               className={selectClasses}
-              value={filterOptions.timeFrameYear}
+              value={dateOptions.timeFrameYear}
               onChange={(e) =>
                 updateStateObject(
                   "timeFrameYear",
                   parseInt(e.target.value),
-                  setFilterOptions,
+                  setDateOptions,
                 )
               }
             >
@@ -89,7 +89,7 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
             </select>
           </div>
         )}
-        {filterOptions.timeFrameType === "weekly" && (
+        {dateOptions.timeFrameType === "weekly" && (
           <div className="flex w-full items-center justify-between py-2">
             <button
               className="rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
@@ -99,7 +99,7 @@ export default function DateRange({ setFilterOptions, filterOptions }: Props) {
               {"<"}
             </button>
             <span className="text-xs">
-              {getWeek(filterOptions.timeFrameWeek)}
+              {getWeek(dateOptions.timeFrameWeek)}
             </span>
             <button
               className="rounded border border-yellow-600 bg-yellow-800 px-2 py-1 text-yellow-600"
