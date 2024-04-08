@@ -3,11 +3,11 @@ import Chart from "./_components/Chart";
 
 // import { CreatePost } from "~/app/_components/create-post";
 import { api } from "~/trpc/server";
-import { defaultFilters } from "~/utils/constants";
+import { dateFilters } from "~/utils/constants";
 
 export default async function Home() {
   noStore();
-  const serverData = await api.chart.getData.query(defaultFilters);
+  const serverData = await api.chart.getData.query(dateFilters);
 
   return (
     <main className="flex min-h-screen flex-col items-center text-white">
